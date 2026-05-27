@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  db:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.db
+    container_name: agenciacode_db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: agenciacode_db
+      MYSQL_USER: agenciauser
+      MYSQL_PASSWORD: userpassword
+      MYSQL_TCP_PORT: 3306
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 5s
+      retries: 5
+    networks:
+      - agenciacode_network
+
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: agenciacode_app
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: mysql+pymysql://agenciauser:userpassword@db:3306/agenciacode_db
+      FLASK_ENV: production
+      SECRET_KEY: your-secret-key-here
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./app:/app/app
+    networks:
+      - agenciacode_network
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+
+  adminer:
+    image: adminer:latest
+    container_name: agenciacode_adminer
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    networks:
+      - agenciacode_network
+
+volumes:
+  db_data:
+
+networks:
+  agenciacode_network:
+    driver: bridge
