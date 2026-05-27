@@ -38,7 +38,7 @@ def create_app(config_name='development'):
         from app.models.assignment import CollaboratorProject
 
         if config_name != 'testing':
-            import app.database.models
+            from app.database import models as _models
             db.create_all()
 
     return app

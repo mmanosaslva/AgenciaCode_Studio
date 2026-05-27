@@ -79,3 +79,5 @@ class CollaboratorProject(db.Model):
     project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=False)
     assigned_date = db.Column(db.Date, default=db.func.current_date())
     removed_date = db.Column(db.Date)
+    collaborator = db.relationship('Collaborator', foreign_keys=[collaborator_id], overlaps="collaborators,projects")
+    project = db.relationship('Project', foreign_keys=[project_id], overlaps="collaborators,projects")
