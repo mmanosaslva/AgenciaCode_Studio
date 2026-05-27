@@ -1,4 +1,0 @@
-DATABASE_URL=mysql+pymysql://agenciauser:userpassword@localhost:3306/agenciacode_db
-FLASK_ENV=development
-SECRET_KEY=tu-clave-secreta-super-segura-aqui
-DEBUG=True
