@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}Colaboradores{% endblock %}
+{% block content %}
+<div class="row mb-3">
+    <div class="col"><h1><i class="bi bi-person-workspace"></i> Colaboradores</h1></div>
+    <div class="col text-end">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalColaborador">
+            <i class="bi bi-plus-lg"></i> Nuevo Colaborador
+        </button>
+    </div>
+</div>
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-dark">
+                    <tr><th>ID</th><th>Nombre</th><th>Rol</th><th>Email</th><th>Telefono</th><th>Estado</th><th>Acciones</th></tr>
+                </thead>
+                <tbody>
+                    {% for c in collaborators %}
+                    <tr>
+                        <td>{{ c.id }}</td>
+                        <td>{{ c.name }}</td>
+                        <td><span class="badge bg-info">{{ c.role }}</span></td>
+                        <td>{{ c.email }}</td>
+                        <td>{{ c.phone or '-' }}</td>
+                        <td><span class="badge bg-{{ 'success' if c.status == 'activo' else 'secondary' }}">{{ c.status }}</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-warning" onclick="editar({{ c.id }},'{{ c.name }}','{{ c.role }}','{{ c.email }}','{{ c.phone or '' }}','{{ c.status }}')"><i class="bi bi-pencil"></i></button>
+                            <form method="POST" action="{{ url_for('web.colaboradores_eliminar', id=c.id) }}" style="display:inline" onsubmit="return confirm('Eliminar {{ c.name }}?')">
+                                <button class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="7" class="text-center text-muted">No hay colaboradores</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalColaborador" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" id="formColaborador">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title" id="modalTitle">Nuevo Colaborador</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="collabId">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre <span class="text-danger">*</span></label>
+                        <input type="text" name="name" id="name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Rol <span class="text-danger">*</span></label>
+                        <select name="role" id="role" class="form-select" required>
+                            <option value="">Seleccione...</option>
+                            <option value="desarrollador">Desarrollador</option>
+                            <option value="diseniador">Diseniador</option>
+                            <option value="analista">Analista</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email <span class="text-danger">*</span></label>
+                        <input type="email" name="email" id="email" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Telefono</label>
+                        <input type="text" name="phone" id="phone" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Estado</label>
+                        <select name="status" id="status" class="form-select">
+                            <option value="activo">Activo</option>
+                            <option value="inactivo">Inactivo</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success" id="btnGuardar">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function editar(id, name, role, email, phone, status) {
+    document.getElementById('modalTitle').textContent = 'Editar Colaborador';
+    document.getElementById('collabId').value = id;
+    document.getElementById('name').value = name;
+    document.getElementById('role').value = role;
+    document.getElementById('email').value = email;
+    document.getElementById('phone').value = phone;
+    document.getElementById('status').value = status;
+    document.getElementById('formColaborador').action = '/colaboradores/' + id + '/editar';
+    document.getElementById('btnGuardar').textContent = 'Actualizar';
+    new bootstrap.Modal(document.getElementById('modalColaborador')).show();
+}
+document.getElementById('modalColaborador').addEventListener('hidden.bs.modal', function () {
+    document.getElementById('modalTitle').textContent = 'Nuevo Colaborador';
+    document.getElementById('formColaborador').action = '/colaboradores/crear';
+    document.getElementById('formColaborador').reset();
+    document.getElementById('btnGuardar').textContent = 'Guardar';
+});
+</script>
+{% endblock %}

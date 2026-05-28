@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Asignaciones{% endblock %}
+{% block content %}
+<div class="row mb-3">
+    <div class="col"><h1><i class="bi bi-link"></i> Asignaciones</h1></div>
+    <div class="col text-end">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAsignacion">
+            <i class="bi bi-plus-lg"></i> Nueva Asignacion
+        </button>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-dark">
+                    <tr><th>ID</th><th>Colaborador</th><th>Proyecto</th><th>Fecha Asignacion</th><th>Fecha Remocion</th><th>Accion</th></tr>
+                </thead>
+                <tbody>
+                    {% for a in assignments %}
+                    <tr>
+                        <td>{{ a.id }}</td>
+                        <td>{{ a.collaborator.name if a.collaborator else 'N/A' }}</td>
+                        <td>{{ a.project.name if a.project else 'N/A' }}</td>
+                        <td>{{ a.assigned_date }}</td>
+                        <td>{{ a.removed_date or '-' }}</td>
+                        <td>
+                            {% if not a.removed_date %}
+                            <form method="POST" action="{{ url_for('web.asignaciones_remover', id=a.id) }}" style="display:inline" onsubmit="return confirm('Remover asignacion?')">
+                                <button class="btn btn-sm btn-danger"><i class="bi bi-x-lg"></i> Remover</button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="6" class="text-center text-muted">No hay asignaciones activas</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalAsignacion" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('web.asignaciones_crear') }}">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">Nueva Asignacion</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Colaborador <span class="text-danger">*</span></label>
+                        <select name="collaborator_id" class="form-select" required>
+                            <option value="">Seleccione...</option>
+                            {% for c in collaborators %}
+                            <option value="{{ c.id }}">{{ c.name }} ({{ c.role }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Proyecto <span class="text-danger">*</span></label>
+                        <select name="project_id" class="form-select" required>
+                            <option value="">Seleccione...</option>
+                            {% for p in projects %}
+                            <option value="{{ p.id }}">{{ p.name }} ({{ p.status }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Asignar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

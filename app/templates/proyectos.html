@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}Proyectos{% endblock %}
+{% block content %}
+<div class="row mb-3">
+    <div class="col"><h1><i class="bi bi-folder"></i> Proyectos</h1></div>
+    <div class="col text-end">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalProyecto">
+            <i class="bi bi-plus-lg"></i> Nuevo Proyecto
+        </button>
+    </div>
+</div>
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-dark">
+                    <tr><th>ID</th><th>Nombre</th><th>Cliente</th><th>Estado</th><th>Inicio</th><th>Fin</th><th>Acciones</th></tr>
+                </thead>
+                <tbody>
+                    {% for p in projects %}
+                    <tr>
+                        <td>{{ p.id }}</td>
+                        <td>{{ p.name }}</td>
+                        <td>{{ p.client.name if p.client else 'N/A' }}</td>
+                        <td><span class="badge bg-{{ 'success' if p.status == 'activo' else 'warning' if p.status == 'planificacion' else 'secondary' if p.status == 'pausado' else 'danger' if p.status == 'cancelado' else 'info' }}">{{ p.status }}</span></td>
+                        <td>{{ p.start_date }}</td>
+                        <td>{{ p.end_date }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-warning" onclick="editar({{ p.id }},'{{ p.name }}','{{ p.status }}','{{ p.start_date }}','{{ p.end_date }}','{{ p.description or '' }}')"><i class="bi bi-pencil"></i></button>
+                            <form method="POST" action="{{ url_for('web.proyectos_eliminar', id=p.id) }}" style="display:inline" onsubmit="return confirm('Eliminar {{ p.name }}?')">
+                                <button class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="7" class="text-center text-muted">No hay proyectos</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalProyecto" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="POST" id="formProyecto">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title" id="modalTitle">Nuevo Proyecto</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="proyectoId">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Nombre <span class="text-danger">*</span></label>
+                            <input type="text" name="name" id="name" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Cliente <span class="text-danger">*</span></label>
+                            <select name="client_id" id="client_id" class="form-select" required>
+                                <option value="">Seleccione...</option>
+                                {% for c in clients %}
+                                <option value="{{ c.id }}">{{ c.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Estado</label>
+                            <select name="status" id="status" class="form-select">
+                                <option value="planificacion">Planificacion</option>
+                                <option value="activo">Activo</option>
+                                <option value="pausado">Pausado</option>
+                                <option value="finalizado">Finalizado</option>
+                                <option value="cancelado">Cancelado</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Fecha Inicio <span class="text-danger">*</span></label>
+                            <input type="date" name="start_date" id="start_date" class="form-control" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Fecha Fin <span class="text-danger">*</span></label>
+                            <input type="date" name="end_date" id="end_date" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Descripcion</label>
+                        <textarea name="description" id="description" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning text-dark" id="btnGuardar">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function editar(id, name, status, start, end, desc) {
+    document.getElementById('modalTitle').textContent = 'Editar Proyecto';
+    document.getElementById('proyectoId').value = id;
+    document.getElementById('name').value = name;
+    document.getElementById('status').value = status;
+    document.getElementById('start_date').value = start;
+    document.getElementById('end_date').value = end;
+    document.getElementById('description').value = desc;
+    document.getElementById('formProyecto').action = '/proyectos/' + id + '/editar';
+    document.getElementById('btnGuardar').textContent = 'Actualizar';
+    new bootstrap.Modal(document.getElementById('modalProyecto')).show();
+}
+document.getElementById('modalProyecto').addEventListener('hidden.bs.modal', function () {
+    document.getElementById('modalTitle').textContent = 'Nuevo Proyecto';
+    document.getElementById('formProyecto').action = '/proyectos/crear';
+    document.getElementById('formProyecto').reset();
+    document.getElementById('btnGuardar').textContent = 'Guardar';
+});
+</script>
+{% endblock %}

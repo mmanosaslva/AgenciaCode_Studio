@@ -11,17 +11,20 @@ bcrypt = Bcrypt()
 
 
 def create_app(config_name='development'):
-    app = Flask(__name__)
+    template_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
+    static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
+    app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
 
     if config_name == 'testing':
         app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
         app.config['TESTING'] = True
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
         app.config['SECRET_KEY'] = 'test-secret-key'
+        app.config['WTF_CSRF_ENABLED'] = False
     else:
         app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv(
             'DATABASE_URL',
-            'mysql+pymysql://agenciauser:userpassword@localhost:3306/agenciacode_db'
+            'sqlite:///' + os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'agenciacode.db')
         )
         app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key')
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -40,5 +43,8 @@ def create_app(config_name='development'):
         if config_name != 'testing':
             from app.database import models as _models
             db.create_all()
+
+    from app.routes import web_bp
+    app.register_blueprint(web_bp)
 
     return app
