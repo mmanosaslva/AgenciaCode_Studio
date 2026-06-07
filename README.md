@@ -13,7 +13,7 @@ Aplicación web para la gestión integral de una agencia de desarrollo. Administ
 | Componente        | Tecnología                                   |
 |------------------|----------------------------------------------|
 | Backend          | Python 3.10+ / Flask 3.0 / SQLAlchemy 2.0   |
-| Frontend         | Bootstrap 5 + Jinja2 (web) / Tkinter (legacy)|
+| Frontend         | Bootstrap 5 + Jinja2                        |
 | Base de Datos    | SQLite (desarrollo) / MySQL 8.0 (producción) |
 | Testing          | pytest + pytest-cov                          |
 | Contenedores     | Docker + Docker Compose                      |
@@ -24,8 +24,7 @@ Aplicación web para la gestión integral de una agencia de desarrollo. Administ
 AgenciaCode_Studio/
 │
 ├── app.py                      # Entry point — python app.py
-├── run.py                      # Entry point Tkinter (legacy)
-├── .env                        # Variables de entorno (no subir a Git)
+├── .env                        # Variables de entorno
 ├── .env.example                # Plantilla del .env
 ├── requirements.txt            # Dependencias Python
 ├── docker-compose.yml          # Orquestación Docker
@@ -37,7 +36,6 @@ AgenciaCode_Studio/
 │   ├── routes.py               # 25 rutas web (Flask blueprint)
 │   ├── models/                 # Capa de modelos ORM
 │   ├── controllers/            # Capa de controladores + reglas de negocio
-│   ├── views/                  # Capa de vistas Tkinter (legacy)
 │   ├── templates/              # 9 plantillas HTML + Bootstrap 5
 │   ├── static/                 # CSS, JS
 │   ├── database/               # Config BD, modelos, seed data
@@ -50,15 +48,15 @@ AgenciaCode_Studio/
 
 ## Módulos Implementados
 
-| Módulo          | Web (Flask) | Tkinter (legacy) | Tests |
-|----------------|:-----------:|:----------------:|:-----:|
-| Login / Auth   | ✅          | ✅               | ✅    |
-| CRUD Clientes  | ✅          | ✅               | ✅    |
-| CRUD Colaboradores | ✅      | ✅               | ✅    |
-| CRUD Proyectos | ✅          | ✅               | ✅    |
-| CRUD Tareas    | ✅          | ✅               | ✅    |
-| Asignaciones   | ✅          | ✅               | ✅    |
-| Reportes       | ✅          | ✅               | ✅    |
+| Módulo          | Implementado | Tests |
+|----------------|:------------:|:-----:|
+| Login / Auth   | ✅           | ✅    |
+| CRUD Clientes  | ✅           | ✅    |
+| CRUD Colaboradores | ✅       | ✅    |
+| CRUD Proyectos | ✅           | ✅    |
+| CRUD Tareas    | ✅           | ✅    |
+| Asignaciones   | ✅           | ✅    |
+| Reportes       | ✅           | ✅    |
 
 ## Reglas de Negocio
 
@@ -91,12 +89,8 @@ venv\Scripts\activate
 pip install -r requirements.txt
 cp .env.example .env
 
-# Web (Flask + Bootstrap 5) — recomentado:
 python app.py
 # Abrir http://localhost:5000
-
-# Tkinter (legacy):
-python run.py
 ```
 
 ### Con Docker (MySQL — producción)
