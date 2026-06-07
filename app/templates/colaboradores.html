@@ -28,7 +28,7 @@
                 <td><span class="badge {% if c.status == 'activo' %}badge-success{% else %}badge-outline{% endif %}">{{ c.status }}</span></td>
                 <td>
                     <div class="flex items-center gap-xs">
-                        <button class="btn-ghost" style="padding:4px;" title="Editar"><span class="material-symbols-outlined" style="font-size:18px;">edit</span></button>
+                        <button class="btn-ghost" style="padding:4px;" title="Editar" data-bs-toggle="modal" data-bs-target="#modalColaboradorEdit" data-action="{{ url_for('web.colaboradores_id', id=0) }}" data-id="{{ c.id }}" data-name="{{ c.name }}" data-email="{{ c.email }}" data-phone="{{ c.phone }}" data-role="{{ c.role }}" data-status="{{ c.status }}"><span class="material-symbols-outlined" style="font-size:18px;">edit</span></button>
                         <form method="POST" action="{{ url_for('web.colaboradores_id', id=c.id) }}" style="display:inline;" onsubmit="return confirm('Eliminar {{ c.name }}?')">
                             <input type="hidden" name="_method" value="DELETE">
                             <button class="btn-ghost" style="padding:4px;color:var(--error);" title="Eliminar"><span class="material-symbols-outlined" style="font-size:18px;">delete</span></button>
@@ -100,6 +100,63 @@
     </div>
 </div>
 
+<div class="modal fade" id="modalColaboradorEdit" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title headline-sm">Editar Colaborador</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal">&times;</button>
+            </div>
+            <form id="formColaboradorEdit" method="POST" action="">
+                <input type="hidden" name="_method" value="PUT">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">Nombre</label>
+                        <input class="form-input" type="text" id="cole_nombre" name="name" placeholder="Nombre completo" required minlength="3" maxlength="100" pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\-\.]+$">
+                        <div class="field-error-msg"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input class="form-input" type="email" id="cole_email" name="email" placeholder="correo@dominio.com" required pattern="^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$">
+                        <div class="field-error-msg"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Telefono</label>
+                            <input class="form-input" type="tel" id="cole_telefono" name="phone" placeholder="3001234567" pattern="^\+?[0-9]{10,15}$">
+                            <div class="field-error-msg"></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Rol</label>
+                            <select class="form-input" id="cole_rol" name="role" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="desarrollador">Desarrollador</option>
+                                <option value="diseniador">Diseniador</option>
+                                <option value="analista">Analista</option>
+                            </select>
+                            <div class="field-error-msg"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Estado</label>
+                        <select class="form-input" id="cole_estado" name="status">
+                            <option value="activo">Activo</option>
+                            <option value="inactivo">Inactivo</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary btn-sm" disabled title="Completa todos los campos correctamente">
+                        <span class="material-symbols-outlined" style="font-size:18px;">save</span>
+                        <span class="label-sm">Guardar Cambios</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     setupFieldValidation('formColaborador', [
@@ -108,6 +165,22 @@ document.addEventListener('DOMContentLoaded', function() {
         { id: 'col_telefono', blockNumeric: true, pattern: '^\\+?[0-9]{10,15}$', errorMsg: 'Solo numeros, 10-15 digitos (ej: 3001234567)' },
         { id: 'col_rol', pattern: '^(desarrollador|diseniador|analista)$', errorMsg: 'Selecciona un rol valido' }
     ]);
+    setupFieldValidation('formColaboradorEdit', [
+        { id: 'cole_nombre', pattern: '^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\\s\\-\\.]+$', errorMsg: 'Solo letras, espacios y guiones (min. 3 caracteres)' },
+        { id: 'cole_email', lower: true, pattern: '^[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}$', errorMsg: 'Formato invalido (ej: correo@dominio.com)' },
+        { id: 'cole_telefono', blockNumeric: true, pattern: '^\\+?[0-9]{10,15}$', errorMsg: 'Solo numeros, 10-15 digitos (ej: 3001234567)' },
+        { id: 'cole_rol', pattern: '^(desarrollador|diseniador|analista)$', errorMsg: 'Selecciona un rol valido' }
+    ]);
+    var editModal = document.getElementById('modalColaboradorEdit');
+    editModal.addEventListener('show.bs.modal', function(event) {
+        var btn = event.relatedTarget;
+        document.getElementById('formColaboradorEdit').action = btn.getAttribute('data-action').replace('/0', '/' + btn.getAttribute('data-id'));
+        document.getElementById('cole_nombre').value = btn.getAttribute('data-name');
+        document.getElementById('cole_email').value = btn.getAttribute('data-email');
+        document.getElementById('cole_telefono').value = btn.getAttribute('data-phone');
+        document.getElementById('cole_rol').value = btn.getAttribute('data-role');
+        document.getElementById('cole_estado').value = btn.getAttribute('data-status');
+    });
 });
 </script>
 {% endblock %}

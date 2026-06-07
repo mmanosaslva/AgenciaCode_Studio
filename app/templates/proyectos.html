@@ -45,7 +45,7 @@
                 <td><span class="badge {% if p.status=='finalizado' %}badge-success{% elif p.status=='activo' %}badge-primary{% else %}badge-outline{% endif %}">{{ p.status }}</span></td>
                 <td>
                     <div class="flex items-center gap-xs">
-                        <button class="btn-ghost" style="padding:4px;" title="Editar"><span class="material-symbols-outlined" style="font-size:18px;">edit</span></button>
+                        <button class="btn-ghost" style="padding:4px;" title="Editar" data-bs-toggle="modal" data-bs-target="#modalProyectoEdit" data-action="{{ url_for('web.proyectos_id', id=0) }}" data-id="{{ p.id }}" data-name="{{ p.name }}" data-client-id="{{ p.client_id }}" data-start-date="{{ p.start_date }}" data-end-date="{{ p.end_date or '' }}" data-description="{{ p.description or '' }}"><span class="material-symbols-outlined" style="font-size:18px;">edit</span></button>
                         <form method="POST" action="{{ url_for('web.proyectos_id', id=p.id) }}" style="display:inline;" onsubmit="return confirm('Eliminar {{ p.name }}?')">
                             <input type="hidden" name="_method" value="DELETE">
                             <button class="btn-ghost" style="padding:4px;color:var(--error);" title="Eliminar"><span class="material-symbols-outlined" style="font-size:18px;">delete</span></button>
@@ -114,6 +114,60 @@
     </div>
 </div>
 
+<div class="modal fade" id="modalProyectoEdit" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title headline-sm">Editar Proyecto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal">&times;</button>
+            </div>
+            <form id="formProyectoEdit" method="POST" action="">
+                <input type="hidden" name="_method" value="PUT">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">Nombre del Proyecto</label>
+                        <input class="form-input" type="text" id="pe_nombre" name="name" placeholder="Nombre del proyecto" required minlength="2" maxlength="150">
+                        <div class="field-error-msg"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Cliente</label>
+                        <select class="form-input" id="pe_cliente" name="client_id" required>
+                            <option value="">Seleccionar cliente...</option>
+                            {% for c in clientes %}
+                            <option value="{{ c.id }}">{{ c.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="field-error-msg"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Inicio</label>
+                            <input class="form-input" type="date" id="pe_inicio" name="start_date" required>
+                            <div class="field-error-msg"></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Fin</label>
+                            <input class="form-input" type="date" id="pe_fin" name="end_date" required>
+                            <div class="field-error-msg"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Descripcion</label>
+                        <textarea class="form-input" name="description" rows="3" placeholder="Descripcion del proyecto"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary btn-sm" disabled title="Completa todos los campos correctamente">
+                        <span class="material-symbols-outlined" style="font-size:18px;">save</span>
+                        <span class="label-sm">Guardar Cambios</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     setupFieldValidation('formProyecto', [
@@ -122,6 +176,22 @@ document.addEventListener('DOMContentLoaded', function() {
         { id: 'p_inicio', custom: function(v) { return { valid: !!v, msg: 'Fecha obligatoria' }; } },
         { id: 'p_fin', custom: function(v) { return { valid: !!v, msg: 'Fecha obligatoria' }; } }
     ]);
+    setupFieldValidation('formProyectoEdit', [
+        { id: 'pe_nombre', pattern: '^.{2,150}$', errorMsg: 'Minimo 2 caracteres' },
+        { id: 'pe_cliente', pattern: '^\\d+$', errorMsg: 'Selecciona un cliente' },
+        { id: 'pe_inicio', custom: function(v) { return { valid: !!v, msg: 'Fecha obligatoria' }; } },
+        { id: 'pe_fin', custom: function(v) { return { valid: !!v, msg: 'Fecha obligatoria' }; } }
+    ]);
+    var editModal = document.getElementById('modalProyectoEdit');
+    editModal.addEventListener('show.bs.modal', function(event) {
+        var btn = event.relatedTarget;
+        document.getElementById('formProyectoEdit').action = btn.getAttribute('data-action').replace('/0', '/' + btn.getAttribute('data-id'));
+        document.getElementById('pe_nombre').value = btn.getAttribute('data-name');
+        document.getElementById('pe_cliente').value = btn.getAttribute('data-client-id');
+        document.getElementById('pe_inicio').value = btn.getAttribute('data-start-date');
+        document.getElementById('pe_fin').value = btn.getAttribute('data-end-date');
+        document.querySelector('#formProyectoEdit [name="description"]').value = btn.getAttribute('data-description');
+    });
 });
 </script>
 {% endblock %}

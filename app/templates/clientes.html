@@ -33,14 +33,7 @@
                 <td><span class="body-sm text-on-surface">{{ c.sector }}</span></td>
                 <td>
                     <div class="flex items-center gap-xs">
-                        <form method="POST" action="{{ url_for('web.clientes_id', id=c.id) }}" style="display:inline;">
-                            <input type="hidden" name="_method" value="PUT">
-                            <input type="hidden" name="name" value="{{ c.name }}">
-                            <input type="hidden" name="email" value="{{ c.email }}">
-                            <input type="hidden" name="sector" value="{{ c.sector }}">
-                            <input type="hidden" name="phone" value="{{ c.phone }}">
-                            <button class="btn-ghost" style="padding:4px;" title="Editar"><span class="material-symbols-outlined" style="font-size:18px;">edit</span></button>
-                        </form>
+                        <button class="btn-ghost" style="padding:4px;" title="Editar" data-bs-toggle="modal" data-bs-target="#modalClienteEdit" data-action="{{ url_for('web.clientes_id', id=0) }}" data-id="{{ c.id }}" data-name="{{ c.name }}" data-email="{{ c.email }}" data-phone="{{ c.phone }}" data-sector="{{ c.sector }}"><span class="material-symbols-outlined" style="font-size:18px;">edit</span></button>
                         <form method="POST" action="{{ url_for('web.clientes_id', id=c.id) }}" style="display:inline;" onsubmit="return confirm('Eliminar {{ c.name }}?')">
                             <input type="hidden" name="_method" value="DELETE">
                             <button class="btn-ghost" style="padding:4px;color:var(--error);" title="Eliminar"><span class="material-symbols-outlined" style="font-size:18px;">delete</span></button>
@@ -113,6 +106,64 @@
     </div>
 </div>
 
+<div class="modal fade" id="modalClienteEdit" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title headline-sm">Editar Cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal">&times;</button>
+            </div>
+            <form id="formClienteEdit" method="POST" action="">
+                <input type="hidden" name="_method" value="PUT">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">Nombre</label>
+                        <input class="form-input" type="text" id="ce_nombre" name="name" placeholder="Nombre del cliente" required minlength="3" maxlength="100" pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\-\.]+$">
+                        <div class="field-error-msg"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input class="form-input" type="email" id="ce_email" name="email" placeholder="correo@dominio.com" required pattern="^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$">
+                        <div class="field-error-msg"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Telefono</label>
+                            <input class="form-input" type="tel" id="ce_telefono" name="phone" placeholder="3001234567" pattern="^\+?[0-9]{10,15}$">
+                            <div class="field-error-msg"></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Sector</label>
+                            <select class="form-input" id="ce_sector" name="sector" required>
+                                <option value="">Seleccionar sector...</option>
+                                <option value="Tecnologia">Tecnologia</option>
+                                <option value="Salud">Salud</option>
+                                <option value="Educacion">Educacion</option>
+                                <option value="Finanzas">Finanzas</option>
+                                <option value="Retail">Retail</option>
+                                <option value="Manufactura">Manufactura</option>
+                                <option value="Construccion">Construccion</option>
+                                <option value="Entretenimiento">Entretenimiento</option>
+                                <option value="Consultoria">Consultoria</option>
+                                <option value="Diseno">Diseno</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                            <div class="field-error-msg"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary btn-sm" disabled title="Completa todos los campos correctamente">
+                        <span class="material-symbols-outlined" style="font-size:18px;">save</span>
+                        <span class="label-sm">Guardar Cambios</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     setupFieldValidation('formCliente', [
@@ -121,6 +172,21 @@ document.addEventListener('DOMContentLoaded', function() {
         { id: 'c_telefono', trimmed: true, blockNumeric: true, pattern: '^\\+?[0-9]{10,15}$', errorMsg: 'Solo numeros, 10-15 digitos (ej: 3001234567)' },
         { id: 'c_sector', pattern: '^(Tecnologia|Salud|Educacion|Finanzas|Retail|Manufactura|Construccion|Entretenimiento|Consultoria|Diseno|Otro)$', errorMsg: 'Selecciona un sector valido' }
     ]);
+    setupFieldValidation('formClienteEdit', [
+        { id: 'ce_nombre', pattern: '^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\\s\\-\\.]+$', errorMsg: 'Solo letras, espacios y guiones (min. 3 caracteres)' },
+        { id: 'ce_email', lower: true, pattern: '^[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}$', errorMsg: 'Formato invalido (ej: correo@dominio.com)' },
+        { id: 'ce_telefono', trimmed: true, blockNumeric: true, pattern: '^\\+?[0-9]{10,15}$', errorMsg: 'Solo numeros, 10-15 digitos (ej: 3001234567)' },
+        { id: 'ce_sector', pattern: '^(Tecnologia|Salud|Educacion|Finanzas|Retail|Manufactura|Construccion|Entretenimiento|Consultoria|Diseno|Otro)$', errorMsg: 'Selecciona un sector valido' }
+    ]);
+    var editModal = document.getElementById('modalClienteEdit');
+    editModal.addEventListener('show.bs.modal', function(event) {
+        var btn = event.relatedTarget;
+        document.getElementById('formClienteEdit').action = btn.getAttribute('data-action').replace('/0', '/' + btn.getAttribute('data-id'));
+        document.getElementById('ce_nombre').value = btn.getAttribute('data-name');
+        document.getElementById('ce_email').value = btn.getAttribute('data-email');
+        document.getElementById('ce_telefono').value = btn.getAttribute('data-phone');
+        document.getElementById('ce_sector').value = btn.getAttribute('data-sector');
+    });
 });
 </script>
 {% endblock %}
