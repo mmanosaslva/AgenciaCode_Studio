@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
@@ -28,6 +29,7 @@ def create_app(config_name='development'):
         )
         app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key')
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+        app.permanent_session_lifetime = timedelta(days=30)
 
     db.init_app(app)
     bcrypt.init_app(app)

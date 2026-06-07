@@ -1,39 +1,77 @@
 {% extends "base.html" %}
 {% block title %}Inicio de Sesion{% endblock %}
-{% block content %}
-<div class="row justify-content-center mt-5">
-    <div class="col-md-4">
-        <div class="card shadow">
-            <div class="card-body p-4">
-                <div class="text-center mb-4">
-                    <i class="bi bi-code-slash" style="font-size: 3rem; color: var(--bs-primary);"></i>
-                    <h2 class="mt-2">AgenciaCode Studio</h2>
-                    <p class="text-muted">Sistema de Gestion de Proyectos</p>
+{% block login_content %}
+<div class="login-mesh">
+    <div class="login-backdrop">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <main style="width:100%; max-width:440px; padding: 16px; position:relative; z-index:1;">
+        <div class="login-card">
+            <div class="flex flex-col items-center" style="margin-bottom: var(--space-xl);">
+                <div class="login-logo">
+                    <span class="material-symbols-outlined">developer_board</span>
                 </div>
-                <form method="POST" action="{{ url_for('web.login') }}">
-                    <div class="mb-3">
-                        <label class="form-label">Usuario</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-person"></i></span>
-                            <input type="text" name="username" class="form-control" required autofocus>
-                        </div>
+                <h1 class="headline-sm text-center m-0">AgenciaCode Studio</h1>
+                <p class="body-sm text-center mt-sm m-0">Gestion Inteligente de Proyectos</p>
+            </div>
+
+            <form method="POST" action="{{ url_for('web.login') }}" style="display: flex; flex-direction: column; gap: var(--space-lg);">
+                <div class="form-group">
+                    <label class="form-label" for="username">Usuario</label>
+                    <div class="input-group">
+                        <span class="input-icon material-symbols-outlined">person</span>
+                        <input class="form-input" type="text" id="username" name="username" placeholder="Ingrese su usuario" required>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Contrasena</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                            <input type="password" name="password" class="form-control" required>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100 mt-3">
-                        <i class="bi bi-box-arrow-in-right"></i> Ingresar
-                    </button>
-                </form>
-                <div class="mt-3 text-center text-muted small">
-                    <p class="mb-0">Demo: admin / admin123</p>
                 </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password">Contrasena</label>
+                    <div class="input-group relative">
+                        <span class="input-icon material-symbols-outlined">lock</span>
+                        <input class="form-input has-toggle" type="password" id="password" name="password" placeholder="********" required>
+                        <button class="password-toggle" type="button" onclick="togglePassword()">
+                            <span class="material-symbols-outlined" id="passIcon">visibility_off</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-xs" style="padding: 0 4px;">
+                    <input type="checkbox" id="remember" name="remember" style="width:16px; height:16px; accent-color: var(--primary);">
+                    <label class="body-sm text-on-surface-variant cursor-pointer" for="remember">Mantener sesion iniciada</label>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-full" style="padding: var(--space-md) var(--space-lg);">
+                    <span>Ingresar</span>
+                    <span class="material-symbols-outlined" style="font-size: 20px;">arrow_forward</span>
+                </button>
+            </form>
+
+            <div style="margin-top: var(--space-xl); padding-top: var(--space-lg); border-top: 1px solid var(--outline-variant); text-align: center;">
+                <p class="body-sm text-on-surface-variant m-0">
+                    ¿No tienes una cuenta? <a class="label-md text-primary no-underline" href="{{ url_for('web.register') }}">Registrate</a>
+                </p>
             </div>
         </div>
-    </div>
+
+        <div style="margin-top: var(--space-lg); text-align: center;">
+            <p class="label-sm" style="color: rgba(255,255,255,0.6);">&copy; 2024 AgenciaCode Studio. Todos los derechos reservados.</p>
+        </div>
+    </main>
 </div>
+
+<script>
+function togglePassword() {
+    var input = document.getElementById('password');
+    var icon = document.getElementById('passIcon');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.textContent = 'visibility';
+    } else {
+        input.type = 'password';
+        icon.textContent = 'visibility_off';
+    }
+}
+</script>
 {% endblock %}

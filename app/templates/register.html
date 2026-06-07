@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Registro{% endblock %}
+{% block login_content %}
+<div class="login-mesh">
+    <div class="login-backdrop">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <main style="width:100%; max-width:440px; padding: 16px; position:relative; z-index:1;">
+        <div class="login-card">
+            <div class="flex flex-col items-center" style="margin-bottom: var(--space-xl);">
+                <div class="login-logo">
+                    <span class="material-symbols-outlined">person_add</span>
+                </div>
+                <h1 class="headline-sm text-center m-0">Crear Cuenta</h1>
+                <p class="body-sm text-center mt-sm m-0">Registrate en AgenciaCode Studio</p>
+            </div>
+
+            <form method="POST" action="{{ url_for('web.register') }}" style="display: flex; flex-direction: column; gap: var(--space-lg);">
+                <div class="form-group">
+                    <label class="form-label" for="nombre">Nombre Completo</label>
+                    <div class="input-group">
+                        <span class="input-icon material-symbols-outlined">badge</span>
+                        <input class="form-input" type="text" id="nombre" name="nombre" placeholder="Tu nombre completo" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="username">Usuario</label>
+                    <div class="input-group">
+                        <span class="input-icon material-symbols-outlined">person</span>
+                        <input class="form-input" type="text" id="username" name="username" placeholder="Nombre de usuario" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="email">Email</label>
+                    <div class="input-group">
+                        <span class="input-icon material-symbols-outlined">mail</span>
+                        <input class="form-input" type="email" id="email" name="email" placeholder="correo@ejemplo.com" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password">Contrasena</label>
+                    <div class="input-group relative">
+                        <span class="input-icon material-symbols-outlined">lock</span>
+                        <input class="form-input has-toggle" type="password" id="password" name="password" placeholder="Minimo 8 caracteres" required>
+                        <button class="password-toggle" type="button" onclick="togglePassword()">
+                            <span class="material-symbols-outlined" id="passIcon">visibility_off</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="confirm_password">Confirmar Contrasena</label>
+                    <div class="input-group relative">
+                        <span class="input-icon material-symbols-outlined">lock</span>
+                        <input class="form-input has-toggle" type="password" id="confirm_password" name="confirm_password" placeholder="Repite la contrasena" required>
+                        <button class="password-toggle" type="button" onclick="togglePassword2()">
+                            <span class="material-symbols-outlined" id="passIcon2">visibility_off</span>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-full" style="padding: var(--space-md) var(--space-lg);">
+                    <span>Crear Cuenta</span>
+                    <span class="material-symbols-outlined" style="font-size: 20px;">arrow_forward</span>
+                </button>
+            </form>
+
+            <div style="margin-top: var(--space-xl); padding-top: var(--space-lg); border-top: 1px solid var(--outline-variant); text-align: center;">
+                <p class="body-sm text-on-surface-variant m-0">
+                    ¿Ya tienes cuenta? <a class="label-md text-primary no-underline" href="{{ url_for('web.login') }}">Inicia sesion</a>
+                </p>
+            </div>
+        </div>
+
+        <div style="margin-top: var(--space-lg); text-align: center;">
+            <p class="label-sm" style="color: rgba(255,255,255,0.6);">&copy; 2024 AgenciaCode Studio. Todos los derechos reservados.</p>
+        </div>
+    </main>
+</div>
+
+<script>
+function togglePassword() {
+    var input = document.getElementById('password');
+    var icon = document.getElementById('passIcon');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.textContent = 'visibility';
+    } else {
+        input.type = 'password';
+        icon.textContent = 'visibility_off';
+    }
+}
+function togglePassword2() {
+    var input = document.getElementById('confirm_password');
+    var icon = document.getElementById('passIcon2');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.textContent = 'visibility';
+    } else {
+        input.type = 'password';
+        icon.textContent = 'visibility_off';
+    }
+}
+</script>
+{% endblock %}

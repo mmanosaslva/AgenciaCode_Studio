@@ -1,96 +1,93 @@
 {% extends "base.html" %}
 {% block title %}Tareas{% endblock %}
 {% block content %}
-<div class="row mb-3">
-    <div class="col"><h1><i class="bi bi-check2-square"></i> Tareas</h1></div>
-    <div class="col text-end">
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTarea">
-            <i class="bi bi-plus-lg"></i> Nueva Tarea
-        </button>
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-md" style="margin-bottom: var(--space-xl);">
+    <div>
+        <h2 class="headline-lg text-on-surface m-0">Tareas</h2>
+        <p class="body-md text-on-surface-variant m-0 mt-xs">Administra las tareas de cada proyecto.</p>
     </div>
+    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalTarea">
+        <span class="material-symbols-outlined" style="font-size:18px;">add</span>
+        <span class="label-sm">Nueva Tarea</span>
+    </button>
 </div>
-<div class="card shadow-sm">
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle">
-                <thead class="table-dark">
-                    <tr><th>ID</th><th>Titulo</th><th>Proyecto</th><th>Colaborador</th><th>Prioridad</th><th>Estado</th><th>Vencimiento</th><th>Acciones</th></tr>
-                </thead>
-                <tbody>
-                    {% for t in tasks %}
-                    <tr>
-                        <td>{{ t.id }}</td>
-                        <td>{{ t.title }}</td>
-                        <td>{{ t.project.name if t.project else 'N/A' }}</td>
-                        <td>{{ t.collaborator.name if t.collaborator else '-' }}</td>
-                        <td><span class="badge bg-{{ 'danger' if t.priority == 'critica' else 'warning' if t.priority == 'alta' else 'info' if t.priority == 'media' else 'secondary' }}">{{ t.priority }}</span></td>
-                        <td><span class="badge bg-{{ 'success' if t.status == 'completada' else 'primary' if t.status == 'en_progreso' else 'warning' if t.status == 'en_revision' else 'secondary' if t.status == 'cancelada' else 'info' }}">{{ t.status }}</span></td>
-                        <td>{{ t.due_date }}</td>
-                        <td>
-                            <button class="btn btn-sm btn-warning" onclick="editar({{ t.id }},'{{ t.title }}',{{ t.project_id }},{{ t.collaborator_id or 'null' }},'{{ t.priority }}','{{ t.status }}','{{ t.due_date }}','{{ t.description or '' }}')"><i class="bi bi-pencil"></i></button>
-                            <form method="POST" action="{{ url_for('web.tareas_eliminar', id=t.id) }}" style="display:inline" onsubmit="return confirm('Eliminar tarea?')">
-                                <button class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></button>
-                            </form>
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr><td colspan="8" class="text-center text-muted">No hay tareas</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
+
+<div class="table-container">
+    <table class="w-full">
+        <thead>
+            <tr><th>Tarea</th><th>Proyecto</th><th>Prioridad</th><th>Estado</th><th>Vencimiento</th><th style="width:100px;">Accion</th></tr>
+        </thead>
+        <tbody>
+            {% if tareas %}
+            {% for t in tareas %}
+            <tr>
+                <td><p class="label-md text-on-surface m-0">{{ t.title }}</p></td>
+                <td><span class="body-sm text-on-surface">{{ t.project.name if t.project else '—' }}</span></td>
+                <td><span class="badge {% if t.priority|lower in ('critica','alta') %}badge-error{% elif t.priority|lower=='media' %}badge-outline{% else %}badge-tertiary{% endif %}">{{ t.priority }}</span></td>
+                <td><span class="body-sm text-on-surface">{{ t.status }}</span></td>
+                <td><span class="body-sm text-on-surface">{{ t.due_date if t.due_date else '—' }}</span></td>
+                <td>
+                    <div class="flex items-center gap-xs">
+                        <button class="btn-ghost" style="padding:4px;" title="Editar"><span class="material-symbols-outlined" style="font-size:18px;">edit</span></button>
+                        <form method="POST" action="{{ url_for('web.tareas_id', id=t.id) }}" style="display:inline;" onsubmit="return confirm('Eliminar {{ t.title }}?')">
+                            <input type="hidden" name="_method" value="DELETE">
+                            <button class="btn-ghost" style="padding:4px;color:var(--error);" title="Eliminar"><span class="material-symbols-outlined" style="font-size:18px;">delete</span></button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr><td colspan="6" style="text-align:center;padding:var(--space-xl);color:var(--on-surface-variant);">No hay tareas registradas.</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
 </div>
 
 <div class="modal fade" id="modalTarea" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog">
         <div class="modal-content">
-            <form method="POST" id="formTarea">
-                <div class="modal-header bg-info text-white">
-                    <h5 class="modal-title" id="modalTitle">Nueva Tarea</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
+            <div class="modal-header">
+                <h5 class="modal-title headline-sm">Nueva Tarea</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal">&times;</button>
+            </div>
+            <form id="formTarea" method="POST" action="{{ url_for('web.tareas') }}">
                 <div class="modal-body">
-                    <input type="hidden" name="id" id="tareaId">
-                    <div class="row">
-                        <div class="col-md-8 mb-3">
-                            <label class="form-label">Titulo <span class="text-danger">*</span></label>
-                            <input type="text" name="title" id="title" class="form-control" required>
+                    <div class="form-group">
+                        <label class="form-label">Titulo</label>
+                        <input class="form-input" type="text" id="t_titulo" name="title" placeholder="Titulo de la tarea" required minlength="2" maxlength="200">
+                        <div class="field-error-msg"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Descripcion</label>
+                        <textarea class="form-input" name="description" rows="3" placeholder="Descripcion"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Proyecto</label>
+                            <select class="form-input" id="t_proyecto" name="project_id" required>
+                                <option value="">Seleccionar proyecto...</option>
+                                {% for p in proyectos %}
+                                <option value="{{ p.id }}">{{ p.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="field-error-msg"></div>
                         </div>
-                        <div class="col-md-4 mb-3">
+                        <div class="form-group">
                             <label class="form-label">Prioridad</label>
-                            <select name="priority" id="priority" class="form-select">
+                            <select class="form-input" id="t_prioridad" name="priority" required>
                                 <option value="baja">Baja</option>
                                 <option value="media" selected>Media</option>
                                 <option value="alta">Alta</option>
                                 <option value="critica">Critica</option>
                             </select>
+                            <div class="field-error-msg"></div>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Proyecto <span class="text-danger">*</span></label>
-                            <select name="project_id" id="project_id" class="form-select" required>
-                                <option value="">Seleccione...</option>
-                                {% for p in projects %}
-                                <option value="{{ p.id }}">{{ p.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Colaborador</label>
-                            <select name="collaborator_id" id="collaborator_id" class="form-select">
-                                <option value="">Sin asignar</option>
-                                {% for c in collaborators %}
-                                <option value="{{ c.id }}">{{ c.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
+                    <div class="form-row">
+                        <div class="form-group">
                             <label class="form-label">Estado</label>
-                            <select name="status" id="status" class="form-select">
+                            <select class="form-input" name="status">
                                 <option value="pendiente">Pendiente</option>
                                 <option value="en_progreso">En Progreso</option>
                                 <option value="en_revision">En Revision</option>
@@ -98,19 +95,28 @@
                                 <option value="cancelada">Cancelada</option>
                             </select>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Fecha Vencimiento <span class="text-danger">*</span></label>
-                            <input type="date" name="due_date" id="due_date" class="form-control" required>
+                        <div class="form-group">
+                            <label class="form-label">Colaborador</label>
+                            <select class="form-input" name="collaborator_id">
+                                <option value="">Sin asignar</option>
+                                {% for c in colaboradores %}
+                                <option value="{{ c.id }}">{{ c.name }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Descripcion</label>
-                        <textarea name="description" id="description" class="form-control" rows="2"></textarea>
+                    <div class="form-group">
+                        <label class="form-label">Fecha Limite</label>
+                        <input class="form-input" type="date" id="t_fecha" name="due_date">
+                        <div class="field-error-msg"></div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-info text-white" id="btnGuardar">Guardar</button>
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary btn-sm" disabled title="Completa todos los campos correctamente">
+                        <span class="material-symbols-outlined" style="font-size:18px;">save</span>
+                        <span class="label-sm">Guardar</span>
+                    </button>
                 </div>
             </form>
         </div>
@@ -118,25 +124,12 @@
 </div>
 
 <script>
-function editar(id, title, projectId, collabId, priority, status, due, desc) {
-    document.getElementById('modalTitle').textContent = 'Editar Tarea';
-    document.getElementById('tareaId').value = id;
-    document.getElementById('title').value = title;
-    document.getElementById('project_id').value = projectId;
-    if (collabId) document.getElementById('collaborator_id').value = collabId;
-    document.getElementById('priority').value = priority;
-    document.getElementById('status').value = status;
-    document.getElementById('due_date').value = due;
-    document.getElementById('description').value = desc;
-    document.getElementById('formTarea').action = '/tareas/' + id + '/editar';
-    document.getElementById('btnGuardar').textContent = 'Actualizar';
-    new bootstrap.Modal(document.getElementById('modalTarea')).show();
-}
-document.getElementById('modalTarea').addEventListener('hidden.bs.modal', function () {
-    document.getElementById('modalTitle').textContent = 'Nueva Tarea';
-    document.getElementById('formTarea').action = '/tareas/crear';
-    document.getElementById('formTarea').reset();
-    document.getElementById('btnGuardar').textContent = 'Guardar';
+document.addEventListener('DOMContentLoaded', function() {
+    setupFieldValidation('formTarea', [
+        { id: 't_titulo', pattern: '^.{2,200}$', errorMsg: 'Minimo 2 caracteres' },
+        { id: 't_proyecto', pattern: '^\\d+$', errorMsg: 'Selecciona un proyecto' },
+        { id: 't_prioridad', pattern: '^(baja|media|alta|critica)$', errorMsg: 'Selecciona una prioridad' }
+    ]);
 });
 </script>
 {% endblock %}

@@ -1,99 +1,133 @@
 {% extends "base.html" %}
 {% block title %}Reportes{% endblock %}
 {% block content %}
-<h1><i class="bi bi-bar-chart"></i> Reportes</h1>
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-md" style="margin-bottom: var(--space-xl);">
+    <div>
+        <h2 class="headline-lg text-on-surface m-0">Reportes</h2>
+        <p class="body-md text-on-surface-variant m-0 mt-xs">Visualiza el rendimiento de la agencia.</p>
+    </div>
+    <div class="flex items-center gap-xs" style="padding: 4px; background-color: var(--surface-lowest); border-radius: var(--radius-md); border: 1px solid var(--outline-variant);">
+        <button class="btn btn-sm" style="background-color: var(--primary-fixed); color: var(--on-primary-fixed); border-radius: var(--radius);">Resumen</button>
+        <button class="btn btn-sm btn-ghost" style="border-radius: var(--radius);">Carga</button>
+        <button class="btn btn-sm btn-ghost" style="border-radius: var(--radius);">Tareas</button>
+    </div>
+</div>
 
-<ul class="nav nav-tabs mb-4" id="reportTabs" role="tablist">
-    <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="proyectos-tab" data-bs-toggle="tab" data-bs-target="#proyectos" type="button">Resumen de Proyectos</button>
-    </li>
-    <li class="nav-item" role="presentation">
-        <button class="nav-link" id="colaboradores-tab" data-bs-toggle="tab" data-bs-target="#colaboradores" type="button">Carga de Colaboradores</button>
-    </li>
-    <li class="nav-item" role="presentation">
-        <button class="nav-link" id="tareas-tab" data-bs-toggle="tab" data-bs-target="#tareas" type="button">Tareas por Estado</button>
-    </li>
-</ul>
+<div class="stats-grid">
+    <div class="kpi-card">
+        <p class="label-sm text-on-surface-variant uppercase tracking-wider m-0">Tareas Completadas</p>
+        <h3 class="headline-lg text-on-surface m-0 mt-xs">{{ stats.completadas if stats else '0' }}</h3>
+        <p class="body-sm text-tertiary m-0 mt-xs flex items-center gap-xs">
+            <span class="material-symbols-outlined" style="font-size: 16px;">trending_up</span>
+            +23% vs mes anterior
+        </p>
+    </div>
+    <div class="kpi-card">
+        <p class="label-sm text-on-surface-variant uppercase tracking-wider m-0">Tareas Pendientes</p>
+        <h3 class="headline-lg text-on-surface m-0 mt-xs">{{ stats.pendientes if stats else '0' }}</h3>
+        <p class="body-sm text-error m-0 mt-xs flex items-center gap-xs">
+            <span class="material-symbols-outlined" style="font-size: 16px;">trending_down</span>
+            +5% vs mes anterior
+        </p>
+    </div>
+    <div class="kpi-card">
+        <p class="label-sm text-on-surface-variant uppercase tracking-wider m-0">Tareas En Progreso</p>
+        <h3 class="headline-lg text-primary m-0 mt-xs">{{ stats.en_progreso if stats else '0' }}</h3>
+    </div>
+    <div class="kpi-card">
+        <p class="label-sm text-on-surface-variant uppercase tracking-wider m-0">Eficiencia General</p>
+        <h3 class="headline-lg text-tertiary m-0 mt-xs">{{ stats.eficiencia if stats else '0' }}%</h3>
+        <div style="margin-top: var(--space-sm); height: 6px; background-color: var(--surface-high); border-radius: 3px; overflow: hidden;">
+            <div style="height: 100%; width: {{ stats.eficiencia if stats else 0 }}%; background-color: var(--tertiary); border-radius: 3px;"></div>
+        </div>
+    </div>
+</div>
 
-<div class="tab-content">
-    <div class="tab-pane fade show active" id="proyectos">
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead class="table-dark">
-                            <tr><th>Proyecto</th><th>Cliente</th><th>Estado</th><th>Inicio</th><th>Fin</th><th>Total Tareas</th><th>Completadas</th></tr>
-                        </thead>
-                        <tbody>
-                            {% for p in projects_summary %}
-                            <tr>
-                                <td>{{ p.project_name }}</td>
-                                <td>{{ p.client_name }}</td>
-                                <td><span class="badge bg-{{ 'success' if p.status == 'activo' else 'warning' }}">{{ p.status }}</span></td>
-                                <td>{{ p.start_date }}</td>
-                                <td>{{ p.end_date }}</td>
-                                <td>{{ p.total_tasks }}</td>
-                                <td>{{ p.completed_tasks }}</td>
-                            </tr>
-                            {% else %}
-                            <tr><td colspan="7" class="text-center text-muted">Sin datos</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+<div class="grid grid-cols-12 gap-lg">
+    <div class="col-span-12 lg:col-span-7">
+        <div class="kpi-card">
+            <h4 class="headline-sm text-on-surface m-0">Tareas por Estado</h4>
+            <div style="margin-top: var(--space-lg); display: flex; align-items: flex-end; gap: var(--space-md); height: 200px; padding: var(--space-md) 0;">
+                {% set estados_chart = {'Pendientes': stats.pendientes|default(0), 'En Progreso': stats.en_progreso|default(0), 'Completadas': stats.completadas|default(0)} %}
+                {% set max_val = estados_chart.values()|max if estados_chart.values() else 1 %}
+                {% for label, val in estados_chart.items() %}
+                <div class="flex flex-col items-center gap-sm flex-1">
+                    <div class="chart-bar w-full" style="max-width:80px; height: {{ (val / max_val * 100) if max_val > 0 else 0 }}%; min-height: 4px; background-color: {% if label == 'Pendientes' %}var(--error){% elif label == 'En Progreso' %}var(--primary){% else %}var(--tertiary){% endif %}; border-radius: var(--radius) var(--radius) 0 0;"></div>
+                    <span class="label-sm text-on-surface-variant">{{ val }}</span>
+                    <span class="label-sm text-on-surface-variant">{{ label }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="col-span-12 lg:col-span-5">
+        <div class="kpi-card">
+            <h4 class="headline-sm text-on-surface m-0">Carga de Trabajo</h4>
+            <div style="margin-top: var(--space-lg); display: flex; flex-direction: column; gap: var(--space-lg);">
+                <div>
+                    <div class="flex items-center justify-between" style="margin-bottom: var(--space-sm);">
+                        <span class="label-sm text-on-surface">Equipo A</span>
+                        <span class="label-sm text-on-surface-variant">80%</span>
+                    </div>
+                    <div class="progress-bar"><div class="progress-fill" style="width: 80%;"></div></div>
+                </div>
+                <div>
+                    <div class="flex items-center justify-between" style="margin-bottom: var(--space-sm);">
+                        <span class="label-sm text-on-surface">Equipo B</span>
+                        <span class="label-sm text-on-surface-variant">45%</span>
+                    </div>
+                    <div class="progress-bar"><div class="progress-fill" style="width: 45%;"></div></div>
+                </div>
+                <div>
+                    <div class="flex items-center justify-between" style="margin-bottom: var(--space-sm);">
+                        <span class="label-sm text-on-surface">Equipo C</span>
+                        <span class="label-sm text-on-surface-variant">60%</span>
+                    </div>
+                    <div class="progress-bar"><div class="progress-fill" style="width: 60%;"></div></div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <div class="tab-pane fade" id="colaboradores">
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead class="table-dark">
-                            <tr><th>Nombre</th><th>Rol</th><th>Proyectos Activos</th><th>Tareas Asignadas</th><th>Tareas en Progreso</th></tr>
-                        </thead>
-                        <tbody>
-                            {% for c in collab_workload %}
-                            <tr>
-                                <td>{{ c.name }}</td>
-                                <td>{{ c.role }}</td>
-                                <td>{{ c.active_projects }}</td>
-                                <td>{{ c.assigned_tasks }}</td>
-                                <td>{{ c.tasks_in_progress }}</td>
-                            </tr>
-                            {% else %}
-                            <tr><td colspan="5" class="text-center text-muted">Sin datos</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+<div class="table-container" style="margin-top: var(--space-lg);">
+    <div class="flex items-center justify-between" style="padding: var(--space-lg); border-bottom: 1px solid var(--outline-variant);">
+        <h4 class="headline-sm text-on-surface m-0">Detalle de Tareas</h4>
     </div>
-
-    <div class="tab-pane fade" id="tareas">
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead class="table-dark">
-                            <tr><th>Estado</th><th>Cantidad</th></tr>
-                        </thead>
-                        <tbody>
-                            {% for t in tasks_by_status %}
-                            <tr>
-                                <td>{{ t.status }}</td>
-                                <td>{{ t.count }}</td>
-                            </tr>
-                            {% else %}
-                            <tr><td colspan="2" class="text-center text-muted">Sin datos</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
+    <table class="w-full">
+        <thead>
+            <tr><th>Tarea</th><th>Estado</th><th>Prioridad</th><th>Asignado a</th></tr>
+        </thead>
+        <tbody>
+            {% if tareas %}
+            {% for t in tareas %}
+            <tr>
+                <td><p class="label-md text-on-surface m-0">{{ t.Nombre }}</p></td>
+                <td>
+                    {% if t.Estado == 'Completado' %}
+                    <span class="badge badge-success">{{ t.Estado }}</span>
+                    {% elif t.Estado == 'En Progreso' %}
+                    <span class="badge badge-primary">{{ t.Estado }}</span>
+                    {% else %}
+                    <span class="badge badge-outline">{{ t.Estado }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if t.Prioridad == 'Alta' %}
+                    <span class="badge badge-error">{{ t.Prioridad }}</span>
+                    {% elif t.Prioridad == 'Media' %}
+                    <span class="badge badge-outline">{{ t.Prioridad }}</span>
+                    {% else %}
+                    <span class="badge badge-tertiary">{{ t.Prioridad }}</span>
+                    {% endif %}
+                </td>
+                <td><span class="body-sm text-on-surface">{{ t.Colaborador if t.Colaborador else '—' }}</span></td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr><td colspan="4" style="text-align: center; padding: var(--space-xl); color: var(--on-surface-variant);">No hay tareas registradas.</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
 </div>
 {% endblock %}

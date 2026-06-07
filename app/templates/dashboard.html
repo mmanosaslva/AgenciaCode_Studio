@@ -1,79 +1,74 @@
 {% extends "base.html" %}
 {% block title %}Dashboard{% endblock %}
 {% block content %}
-<div class="row mb-4">
-    <div class="col">
-        <h1><i class="bi bi-house"></i> Dashboard</h1>
-        <p class="text-muted">Bienvenido, <strong>{{ username }}</strong>. Seleccione un modulo para comenzar.</p>
+<div style="margin-bottom: var(--space-xl);">
+    <h2 class="headline-lg text-on-surface m-0">Bienvenido, {{ username }}</h2>
+    <p class="body-md text-on-surface-variant m-0 mt-xs">Aqui tienes el resumen de hoy.</p>
+</div>
+
+<div class="stats-grid">
+    <div class="kpi-card">
+        <div style="padding: var(--space-sm); background-color: color-mix(in srgb, var(--primary) 10%, transparent); border-radius: var(--radius); color: var(--primary); display: inline-flex; margin-bottom: var(--space-md);">
+            <span class="material-symbols-outlined">account_tree</span>
+        </div>
+        <p class="label-sm text-on-surface-variant uppercase tracking-wider m-0">Proyectos Activos</p>
+        <h3 class="headline-lg text-on-surface m-0 mt-xs">{{ projects_count }}</h3>
+    </div>
+    <div class="kpi-card">
+        <div style="padding: var(--space-sm); background-color: color-mix(in srgb, var(--secondary) 10%, transparent); border-radius: var(--radius); color: var(--secondary); display: inline-flex; margin-bottom: var(--space-md);">
+            <span class="material-symbols-outlined">task_alt</span>
+        </div>
+        <p class="label-sm text-on-surface-variant uppercase tracking-wider m-0">Tareas Pendientes</p>
+        <h3 class="headline-lg text-on-surface m-0 mt-xs">{{ pending_tasks }}</h3>
+    </div>
+    <div class="kpi-card">
+        <div style="padding: var(--space-sm); background-color: color-mix(in srgb, var(--tertiary) 10%, transparent); border-radius: var(--radius); color: var(--tertiary); display: inline-flex; margin-bottom: var(--space-md);">
+            <span class="material-symbols-outlined">diversity_3</span>
+        </div>
+        <p class="label-sm text-on-surface-variant uppercase tracking-wider m-0">Colaboradores</p>
+        <h3 class="headline-lg text-on-surface m-0 mt-xs">{{ collaborators_count }}</h3>
+    </div>
+    <div class="kpi-card">
+        <div style="padding: var(--space-sm); background-color: var(--surface-variant); border-radius: var(--radius); color: var(--on-surface-variant); display: inline-flex; margin-bottom: var(--space-md);">
+            <span class="material-symbols-outlined">business</span>
+        </div>
+        <p class="label-sm text-on-surface-variant uppercase tracking-wider m-0">Clientes</p>
+        <h3 class="headline-lg text-on-surface m-0 mt-xs">{{ clients_count }}</h3>
     </div>
 </div>
 
-<div class="row g-4">
-    <div class="col-md-4 col-lg-3">
-        <a href="{{ url_for('web.clientes') }}" class="text-decoration-none">
-            <div class="card dashboard-card shadow-sm h-100">
-                <div class="card-body text-center p-4">
-                    <i class="bi bi-people display-3 text-primary"></i>
-                    <h5 class="mt-3">Clientes</h5>
-                    <p class="text-muted small">Gestion de clientes</p>
-                </div>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-4 col-lg-3">
-        <a href="{{ url_for('web.colaboradores') }}" class="text-decoration-none">
-            <div class="card dashboard-card shadow-sm h-100">
-                <div class="card-body text-center p-4">
-                    <i class="bi bi-person-workspace display-3 text-success"></i>
-                    <h5 class="mt-3">Colaboradores</h5>
-                    <p class="text-muted small">Equipo de trabajo</p>
-                </div>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-4 col-lg-3">
-        <a href="{{ url_for('web.proyectos') }}" class="text-decoration-none">
-            <div class="card dashboard-card shadow-sm h-100">
-                <div class="card-body text-center p-4">
-                    <i class="bi bi-folder display-3 text-warning"></i>
-                    <h5 class="mt-3">Proyectos</h5>
-                    <p class="text-muted small">Proyectos activos</p>
-                </div>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-4 col-lg-3">
-        <a href="{{ url_for('web.tareas') }}" class="text-decoration-none">
-            <div class="card dashboard-card shadow-sm h-100">
-                <div class="card-body text-center p-4">
-                    <i class="bi bi-check2-square display-3 text-info"></i>
-                    <h5 class="mt-3">Tareas</h5>
-                    <p class="text-muted small">Gestion de tareas</p>
-                </div>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-4 col-lg-3">
-        <a href="{{ url_for('web.asignaciones') }}" class="text-decoration-none">
-            <div class="card dashboard-card shadow-sm h-100">
-                <div class="card-body text-center p-4">
-                    <i class="bi bi-link display-3 text-danger"></i>
-                    <h5 class="mt-3">Asignaciones</h5>
-                    <p class="text-muted small">Colaboradores a proyectos</p>
-                </div>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-4 col-lg-3">
-        <a href="{{ url_for('web.reportes') }}" class="text-decoration-none">
-            <div class="card dashboard-card shadow-sm h-100">
-                <div class="card-body text-center p-4">
-                    <i class="bi bi-bar-chart display-3 text-secondary"></i>
-                    <h5 class="mt-3">Reportes</h5>
-                    <p class="text-muted small">Estadisticas y resumenes</p>
-                </div>
-            </div>
-        </a>
+<div class="stats-grid" style="grid-template-columns: repeat(1, 1fr);">
+    <div class="table-container">
+        <div class="flex items-center justify-between" style="padding: var(--space-lg); border-bottom: 1px solid var(--outline-variant);">
+            <h4 class="headline-sm text-on-surface m-0">Proximas Tareas</h4>
+        </div>
+        <table class="w-full">
+            <thead>
+                <tr><th>Tarea</th><th>Prioridad</th><th>Estado</th></tr>
+            </thead>
+            <tbody>
+                {% if recent_tasks %}
+                {% for t in recent_tasks %}
+                <tr>
+                    <td><p class="label-md text-on-surface m-0">{{ t.title }}</p></td>
+                    <td>
+                        {% set prio = t.priority|lower %}
+                        {% if prio in ('critica', 'alta') %}
+                        <span class="badge badge-error">{{ t.priority }}</span>
+                        {% elif prio == 'media' %}
+                        <span class="badge badge-outline">{{ t.priority }}</span>
+                        {% else %}
+                        <span class="badge badge-tertiary">{{ t.priority }}</span>
+                        {% endif %}
+                    </td>
+                    <td><span class="body-sm text-on-surface">{{ t.status }}</span></td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr><td colspan="3" style="text-align: center; padding: var(--space-xl); color: var(--on-surface-variant);">No hay tareas pendientes.</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
     </div>
 </div>
 {% endblock %}

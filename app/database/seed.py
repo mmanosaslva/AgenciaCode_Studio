@@ -7,8 +7,8 @@ def seed_database():
     if User.query.first() is not None:
         return
 
-    admin = User(username='admin', password_hash=bcrypt.generate_password_hash('admin123').decode('utf-8'), role='admin')
-    user1 = User(username='usuario1', password_hash=bcrypt.generate_password_hash('user123').decode('utf-8'), role='user')
+    admin = User(username='admin', password_hash=bcrypt.generate_password_hash('admin123').decode('utf-8'), role='admin', name='Admin', email='admin@agenciacode.com')
+    user1 = User(username='usuario1', password_hash=bcrypt.generate_password_hash('user123').decode('utf-8'), role='user', name='Usuario Demo', email='user1@agenciacode.com')
     db.session.add_all([admin, user1])
 
     clients = [

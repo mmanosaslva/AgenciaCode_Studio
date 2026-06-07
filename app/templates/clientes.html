@@ -1,86 +1,112 @@
 {% extends "base.html" %}
 {% block title %}Clientes{% endblock %}
 {% block content %}
-<div class="row mb-3">
-    <div class="col"><h1><i class="bi bi-people"></i> Clientes</h1></div>
-    <div class="col text-end">
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCliente">
-            <i class="bi bi-plus-lg"></i> Nuevo Cliente
-        </button>
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-md" style="margin-bottom: var(--space-xl);">
+    <div>
+        <h2 class="headline-lg text-on-surface m-0">Clientes</h2>
+        <p class="body-md text-on-surface-variant m-0 mt-xs">Gestiona los clientes de la agencia.</p>
     </div>
+    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalCliente">
+        <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
+        <span class="label-sm">Nuevo Cliente</span>
+    </button>
 </div>
 
-<div class="card shadow-sm">
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle">
-                <thead class="table-dark">
-                    <tr>
-                        <th>ID</th><th>Nombre</th><th>Sector</th><th>Email</th><th>Telefono</th><th>Contacto</th><th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for c in clients %}
-                    <tr>
-                        <td>{{ c.id }}</td>
-                        <td>{{ c.name }}</td>
-                        <td>{{ c.sector or '-' }}</td>
-                        <td>{{ c.email or '-' }}</td>
-                        <td>{{ c.phone or '-' }}</td>
-                        <td>{{ c.contact_person or '-' }}</td>
-                        <td>
-                            <button class="btn btn-sm btn-warning" onclick="editarCliente({{ c.id }}, '{{ c.name }}', '{{ c.sector or '' }}', '{{ c.email or '' }}', '{{ c.phone or '' }}', '{{ c.contact_person or '' }}')" title="Editar">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                            <form method="POST" action="{{ url_for('web.clientes_eliminar', id=c.id) }}" style="display:inline" onsubmit="return confirm('Eliminar cliente {{ c.name }}?')">
-                                <button class="btn btn-sm btn-danger" title="Eliminar"><i class="bi bi-trash"></i></button>
-                            </form>
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr><td colspan="7" class="text-center text-muted">No hay clientes registrados</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+<div class="table-container">
+    <div class="flex items-center justify-between" style="padding: var(--space-lg); border-bottom: 1px solid var(--outline-variant);">
+        <div class="flex items-center gap-md">
+            <h4 class="headline-sm text-on-surface m-0">Todos los Clientes</h4>
+            <span class="badge badge-outline">{{ clientes|length }} registros</span>
         </div>
     </div>
+    <table class="w-full">
+        <thead>
+            <tr><th>Nombre</th><th>Email</th><th>Telefono</th><th>Sector</th><th style="width:100px;">Accion</th></tr>
+        </thead>
+        <tbody>
+            {% if clientes %}
+            {% for c in clientes %}
+            <tr>
+                <td><p class="label-md text-on-surface m-0">{{ c.name }}</p></td>
+                <td><span class="body-sm text-on-surface">{{ c.email }}</span></td>
+                <td><span class="body-sm text-on-surface">{{ c.phone }}</span></td>
+                <td><span class="body-sm text-on-surface">{{ c.sector }}</span></td>
+                <td>
+                    <div class="flex items-center gap-xs">
+                        <form method="POST" action="{{ url_for('web.clientes_id', id=c.id) }}" style="display:inline;">
+                            <input type="hidden" name="_method" value="PUT">
+                            <input type="hidden" name="name" value="{{ c.name }}">
+                            <input type="hidden" name="email" value="{{ c.email }}">
+                            <input type="hidden" name="sector" value="{{ c.sector }}">
+                            <input type="hidden" name="phone" value="{{ c.phone }}">
+                            <button class="btn-ghost" style="padding:4px;" title="Editar"><span class="material-symbols-outlined" style="font-size:18px;">edit</span></button>
+                        </form>
+                        <form method="POST" action="{{ url_for('web.clientes_id', id=c.id) }}" style="display:inline;" onsubmit="return confirm('Eliminar {{ c.name }}?')">
+                            <input type="hidden" name="_method" value="DELETE">
+                            <button class="btn-ghost" style="padding:4px;color:var(--error);" title="Eliminar"><span class="material-symbols-outlined" style="font-size:18px;">delete</span></button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr><td colspan="5" style="text-align:center;padding:var(--space-xl);color:var(--on-surface-variant);">No hay clientes registrados.</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
 </div>
 
 <div class="modal fade" id="modalCliente" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="POST" id="formCliente">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="modalTitle">Nuevo Cliente</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
+            <div class="modal-header">
+                <h5 class="modal-title headline-sm">Nuevo Cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal">&times;</button>
+            </div>
+            <form id="formCliente" method="POST" action="{{ url_for('web.clientes') }}">
                 <div class="modal-body">
-                    <input type="hidden" name="_method" id="_method" value="crear">
-                    <input type="hidden" name="id" id="clienteId">
-                    <div class="mb-3">
-                        <label class="form-label">Nombre <span class="text-danger">*</span></label>
-                        <input type="text" name="name" id="name" class="form-control" required>
+                    <div class="form-group">
+                        <label class="form-label">Nombre</label>
+                        <input class="form-input" type="text" id="c_nombre" name="name" placeholder="Nombre del cliente" required minlength="3" maxlength="100" pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\-\.]+$">
+                        <div class="field-error-msg"></div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Sector</label>
-                        <input type="text" name="sector" id="sector" class="form-control">
-                    </div>
-                    <div class="mb-3">
+                    <div class="form-group">
                         <label class="form-label">Email</label>
-                        <input type="email" name="email" id="email" class="form-control">
+                        <input class="form-input" type="email" id="c_email" name="email" placeholder="correo@dominio.com" required pattern="^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$">
+                        <div class="field-error-msg"></div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Telefono</label>
-                        <input type="text" name="phone" id="phone" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Persona de Contacto</label>
-                        <input type="text" name="contact_person" id="contact_person" class="form-control">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Telefono</label>
+                            <input class="form-input" type="tel" id="c_telefono" name="phone" placeholder="3001234567" pattern="^\+?[0-9]{10,15}$">
+                            <div class="field-error-msg"></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Sector</label>
+                            <select class="form-input" id="c_sector" name="sector" required>
+                                <option value="">Seleccionar sector...</option>
+                                <option value="Tecnologia">Tecnologia</option>
+                                <option value="Salud">Salud</option>
+                                <option value="Educacion">Educacion</option>
+                                <option value="Finanzas">Finanzas</option>
+                                <option value="Retail">Retail</option>
+                                <option value="Manufactura">Manufactura</option>
+                                 <option value="Construccion">Construccion</option>
+                                 <option value="Entretenimiento">Entretenimiento</option>
+                                 <option value="Consultoria">Consultoria</option>
+                                 <option value="Diseno">Diseno</option>
+                                 <option value="Otro">Otro</option>
+                            </select>
+                            <div class="field-error-msg"></div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary" id="btnGuardar">Guardar</button>
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary btn-sm" disabled title="Completa todos los campos correctamente">
+                        <span class="material-symbols-outlined" style="font-size:18px;">save</span>
+                        <span class="label-sm">Guardar</span>
+                    </button>
                 </div>
             </form>
         </div>
@@ -88,26 +114,13 @@
 </div>
 
 <script>
-function editarCliente(id, name, sector, email, phone, contact) {
-    document.getElementById('modalTitle').textContent = 'Editar Cliente';
-    document.getElementById('_method').value = 'editar';
-    document.getElementById('clienteId').value = id;
-    document.getElementById('name').value = name;
-    document.getElementById('sector').value = sector;
-    document.getElementById('email').value = email;
-    document.getElementById('phone').value = phone;
-    document.getElementById('contact_person').value = contact;
-    document.getElementById('formCliente').action = '/clientes/' + id + '/editar';
-    document.getElementById('btnGuardar').textContent = 'Actualizar';
-    new bootstrap.Modal(document.getElementById('modalCliente')).show();
-}
-
-document.getElementById('modalCliente').addEventListener('hidden.bs.modal', function () {
-    document.getElementById('modalTitle').textContent = 'Nuevo Cliente';
-    document.getElementById('_method').value = 'crear';
-    document.getElementById('formCliente').action = '/clientes/crear';
-    document.getElementById('formCliente').reset();
-    document.getElementById('btnGuardar').textContent = 'Guardar';
+document.addEventListener('DOMContentLoaded', function() {
+    setupFieldValidation('formCliente', [
+        { id: 'c_nombre', pattern: '^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\\s\\-\\.]+$', errorMsg: 'Solo letras, espacios y guiones (min. 3 caracteres)' },
+        { id: 'c_email', lower: true, pattern: '^[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}$', errorMsg: 'Formato invalido (ej: correo@dominio.com)' },
+        { id: 'c_telefono', trimmed: true, blockNumeric: true, pattern: '^\\+?[0-9]{10,15}$', errorMsg: 'Solo numeros, 10-15 digitos (ej: 3001234567)' },
+        { id: 'c_sector', pattern: '^(Tecnologia|Salud|Educacion|Finanzas|Retail|Manufactura|Construccion|Entretenimiento|Consultoria|Diseno|Otro)$', errorMsg: 'Selecciona un sector valido' }
+    ]);
 });
 </script>
 {% endblock %}

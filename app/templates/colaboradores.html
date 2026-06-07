@@ -1,88 +1,99 @@
 {% extends "base.html" %}
 {% block title %}Colaboradores{% endblock %}
 {% block content %}
-<div class="row mb-3">
-    <div class="col"><h1><i class="bi bi-person-workspace"></i> Colaboradores</h1></div>
-    <div class="col text-end">
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalColaborador">
-            <i class="bi bi-plus-lg"></i> Nuevo Colaborador
-        </button>
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-md" style="margin-bottom: var(--space-xl);">
+    <div>
+        <h2 class="headline-lg text-on-surface m-0">Colaboradores</h2>
+        <p class="body-md text-on-surface-variant m-0 mt-xs">Administra los miembros del equipo.</p>
     </div>
+    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalColaborador">
+        <span class="material-symbols-outlined" style="font-size:18px;">person_add</span>
+        <span class="label-sm">Nuevo Colaborador</span>
+    </button>
 </div>
-<div class="card shadow-sm">
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle">
-                <thead class="table-dark">
-                    <tr><th>ID</th><th>Nombre</th><th>Rol</th><th>Email</th><th>Telefono</th><th>Estado</th><th>Acciones</th></tr>
-                </thead>
-                <tbody>
-                    {% for c in collaborators %}
-                    <tr>
-                        <td>{{ c.id }}</td>
-                        <td>{{ c.name }}</td>
-                        <td><span class="badge bg-info">{{ c.role }}</span></td>
-                        <td>{{ c.email }}</td>
-                        <td>{{ c.phone or '-' }}</td>
-                        <td><span class="badge bg-{{ 'success' if c.status == 'activo' else 'secondary' }}">{{ c.status }}</span></td>
-                        <td>
-                            <button class="btn btn-sm btn-warning" onclick="editar({{ c.id }},'{{ c.name }}','{{ c.role }}','{{ c.email }}','{{ c.phone or '' }}','{{ c.status }}')"><i class="bi bi-pencil"></i></button>
-                            <form method="POST" action="{{ url_for('web.colaboradores_eliminar', id=c.id) }}" style="display:inline" onsubmit="return confirm('Eliminar {{ c.name }}?')">
-                                <button class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></button>
-                            </form>
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr><td colspan="7" class="text-center text-muted">No hay colaboradores</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
+
+<div class="table-container">
+    <table class="w-full">
+        <thead>
+            <tr><th>Nombre</th><th>Email</th><th>Telefono</th><th>Rol</th><th>Estado</th><th style="width:100px;">Accion</th></tr>
+        </thead>
+        <tbody>
+            {% if colaboradores %}
+            {% for c in colaboradores %}
+            <tr>
+                <td><p class="label-md text-on-surface m-0">{{ c.name }}</p></td>
+                <td><span class="body-sm text-on-surface">{{ c.email }}</span></td>
+                <td><span class="body-sm text-on-surface">{{ c.phone }}</span></td>
+                <td><span class="badge badge-primary">{{ c.role }}</span></td>
+                <td><span class="badge {% if c.status == 'activo' %}badge-success{% else %}badge-outline{% endif %}">{{ c.status }}</span></td>
+                <td>
+                    <div class="flex items-center gap-xs">
+                        <button class="btn-ghost" style="padding:4px;" title="Editar"><span class="material-symbols-outlined" style="font-size:18px;">edit</span></button>
+                        <form method="POST" action="{{ url_for('web.colaboradores_id', id=c.id) }}" style="display:inline;" onsubmit="return confirm('Eliminar {{ c.name }}?')">
+                            <input type="hidden" name="_method" value="DELETE">
+                            <button class="btn-ghost" style="padding:4px;color:var(--error);" title="Eliminar"><span class="material-symbols-outlined" style="font-size:18px;">delete</span></button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr><td colspan="6" style="text-align:center;padding:var(--space-xl);color:var(--on-surface-variant);">No hay colaboradores registrados.</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
 </div>
 
 <div class="modal fade" id="modalColaborador" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="POST" id="formColaborador">
-                <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title" id="modalTitle">Nuevo Colaborador</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
+            <div class="modal-header">
+                <h5 class="modal-title headline-sm">Nuevo Colaborador</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal">&times;</button>
+            </div>
+            <form id="formColaborador" method="POST" action="{{ url_for('web.colaboradores') }}">
                 <div class="modal-body">
-                    <input type="hidden" name="id" id="collabId">
-                    <div class="mb-3">
-                        <label class="form-label">Nombre <span class="text-danger">*</span></label>
-                        <input type="text" name="name" id="name" class="form-control" required>
+                    <div class="form-group">
+                        <label class="form-label">Nombre</label>
+                        <input class="form-input" type="text" id="col_nombre" name="name" placeholder="Nombre completo" required minlength="3" maxlength="100" pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\-\.]+$">
+                        <div class="field-error-msg"></div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Rol <span class="text-danger">*</span></label>
-                        <select name="role" id="role" class="form-select" required>
-                            <option value="">Seleccione...</option>
-                            <option value="desarrollador">Desarrollador</option>
-                            <option value="diseniador">Diseniador</option>
-                            <option value="analista">Analista</option>
-                        </select>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input class="form-input" type="email" id="col_email" name="email" placeholder="correo@dominio.com" required pattern="^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$">
+                        <div class="field-error-msg"></div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Email <span class="text-danger">*</span></label>
-                        <input type="email" name="email" id="email" class="form-control" required>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Telefono</label>
+                            <input class="form-input" type="tel" id="col_telefono" name="phone" placeholder="3001234567" pattern="^\+?[0-9]{10,15}$">
+                            <div class="field-error-msg"></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Rol</label>
+                            <select class="form-input" id="col_rol" name="role" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="desarrollador">Desarrollador</option>
+                                <option value="diseniador">Diseniador</option>
+                                <option value="analista">Analista</option>
+                            </select>
+                            <div class="field-error-msg"></div>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Telefono</label>
-                        <input type="text" name="phone" id="phone" class="form-control">
-                    </div>
-                    <div class="mb-3">
+                    <div class="form-group">
                         <label class="form-label">Estado</label>
-                        <select name="status" id="status" class="form-select">
+                        <select class="form-input" id="col_estado" name="status">
                             <option value="activo">Activo</option>
                             <option value="inactivo">Inactivo</option>
                         </select>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-success" id="btnGuardar">Guardar</button>
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary btn-sm" disabled title="Completa todos los campos correctamente">
+                        <span class="material-symbols-outlined" style="font-size:18px;">save</span>
+                        <span class="label-sm">Guardar</span>
+                    </button>
                 </div>
             </form>
         </div>
@@ -90,23 +101,13 @@
 </div>
 
 <script>
-function editar(id, name, role, email, phone, status) {
-    document.getElementById('modalTitle').textContent = 'Editar Colaborador';
-    document.getElementById('collabId').value = id;
-    document.getElementById('name').value = name;
-    document.getElementById('role').value = role;
-    document.getElementById('email').value = email;
-    document.getElementById('phone').value = phone;
-    document.getElementById('status').value = status;
-    document.getElementById('formColaborador').action = '/colaboradores/' + id + '/editar';
-    document.getElementById('btnGuardar').textContent = 'Actualizar';
-    new bootstrap.Modal(document.getElementById('modalColaborador')).show();
-}
-document.getElementById('modalColaborador').addEventListener('hidden.bs.modal', function () {
-    document.getElementById('modalTitle').textContent = 'Nuevo Colaborador';
-    document.getElementById('formColaborador').action = '/colaboradores/crear';
-    document.getElementById('formColaborador').reset();
-    document.getElementById('btnGuardar').textContent = 'Guardar';
+document.addEventListener('DOMContentLoaded', function() {
+    setupFieldValidation('formColaborador', [
+        { id: 'col_nombre', pattern: '^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\\s\\-\\.]+$', errorMsg: 'Solo letras, espacios y guiones (min. 3 caracteres)' },
+        { id: 'col_email', lower: true, pattern: '^[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}$', errorMsg: 'Formato invalido (ej: correo@dominio.com)' },
+        { id: 'col_telefono', blockNumeric: true, pattern: '^\\+?[0-9]{10,15}$', errorMsg: 'Solo numeros, 10-15 digitos (ej: 3001234567)' },
+        { id: 'col_rol', pattern: '^(desarrollador|diseniador|analista)$', errorMsg: 'Selecciona un rol valido' }
+    ]);
 });
 </script>
 {% endblock %}

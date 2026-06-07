@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>AgenciaCode Studio - {% block title %}Sistema de Gestion{% endblock %}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}">
     <script>
         (function() {
@@ -18,54 +16,130 @@
 </head>
 <body>
     {% if session.user_id %}
-    <nav class="navbar navbar-expand-lg navbar-dark mb-4">
-        <div class="container-fluid">
-            <a class="navbar-brand fw-bold" href="{{ url_for('web.dashboard') }}">
-                <i class="bi bi-code-slash"></i> AgenciaCode Studio
+    <!-- Sidebar Overlay (mobile) -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <h1 class="headline-sm">AgenciaCode</h1>
+            <p class="body-sm">Management System</p>
+        </div>
+        <nav class="sidebar-nav">
+            <a class="sidebar-link {% if request.endpoint == 'web.dashboard' %}active{% endif %}" href="{{ url_for('web.dashboard') }}">
+                <span class="material-symbols-outlined">home</span>
+                <span class="label-md">Dashboard</span>
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('web.dashboard') }}"><i class="bi bi-house"></i> Dashboard</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('web.clientes') }}"><i class="bi bi-people"></i> Clientes</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('web.colaboradores') }}"><i class="bi bi-person-workspace"></i> Colaboradores</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('web.proyectos') }}"><i class="bi bi-folder"></i> Proyectos</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('web.tareas') }}"><i class="bi bi-check2-square"></i> Tareas</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('web.asignaciones') }}"><i class="bi bi-link"></i> Asignaciones</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('web.reportes') }}"><i class="bi bi-bar-chart"></i> Reportes</a></li>
-                </ul>
-                <span class="navbar-text me-3">
-                    <i class="bi bi-person-circle"></i> {{ session.username }}
-                </span>
-                <button id="themeToggle" class="btn btn-outline-light btn-sm me-2" onclick="toggleTheme()" title="Modo oscuro">
-                    <i class="bi bi-moon-fill"></i>
+            <a class="sidebar-link {% if request.endpoint and 'clientes' in request.endpoint %}active{% endif %}" href="{{ url_for('web.clientes') }}">
+                <span class="material-symbols-outlined">business_center</span>
+                <span class="label-md">Clientes</span>
+            </a>
+            <a class="sidebar-link {% if request.endpoint and 'colaboradores' in request.endpoint %}active{% endif %}" href="{{ url_for('web.colaboradores') }}">
+                <span class="material-symbols-outlined">groups</span>
+                <span class="label-md">Colaboradores</span>
+            </a>
+            <a class="sidebar-link {% if request.endpoint and 'proyectos' in request.endpoint %}active{% endif %}" href="{{ url_for('web.proyectos') }}">
+                <span class="material-symbols-outlined">account_tree</span>
+                <span class="label-md">Proyectos</span>
+            </a>
+            <a class="sidebar-link {% if request.endpoint and 'tareas' in request.endpoint %}active{% endif %}" href="{{ url_for('web.tareas') }}">
+                <span class="material-symbols-outlined">task</span>
+                <span class="label-md">Tareas</span>
+            </a>
+            <a class="sidebar-link {% if request.endpoint and 'asignaciones' in request.endpoint %}active{% endif %}" href="{{ url_for('web.asignaciones') }}">
+                <span class="material-symbols-outlined">assignment_ind</span>
+                <span class="label-md">Asignaciones</span>
+            </a>
+            <a class="sidebar-link {% if request.endpoint and 'reportes' in request.endpoint %}active{% endif %}" href="{{ url_for('web.reportes') }}">
+                <span class="material-symbols-outlined">analytics</span>
+                <span class="label-md">Reportes</span>
+            </a>
+        </nav>
+        <div class="sidebar-footer"></div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Topbar -->
+        <header class="topbar">
+            <div class="flex items-center gap-lg">
+                <button class="md:hidden btn-ghost" id="mobileMenuBtn">
+                    <span class="material-symbols-outlined">menu</span>
                 </button>
-                <a href="{{ url_for('web.logout') }}" class="btn btn-outline-light btn-sm">
-                    <i class="bi bi-box-arrow-right"></i> Salir
+                <div class="relative" style="max-width: 320px; width: 100%; display: none;">
+                    <span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline" style="font-size: 20px;">search</span>
+                    <input class="search-input" placeholder="Buscar..." type="text">
+                </div>
+            </div>
+            <div class="flex items-center gap-md">
+                <button class="btn-ghost" title="Notificaciones">
+                    <span class="material-symbols-outlined">notifications</span>
+                </button>
+                <button class="btn-ghost" title="Ayuda">
+                    <span class="material-symbols-outlined">help</span>
+                </button>
+                <div style="width: 1px; height: 24px; background-color: var(--outline-variant); margin: 0 4px;"></div>
+                <div class="flex items-center gap-sm">
+                    <div class="avatar" style="background-color: var(--primary-container); color: var(--on-primary-container);">
+                        {{ session.username[:1]|upper }}
+                    </div>
+                    <span class="body-sm text-on-surface-variant hidden sm:block">{{ session.username }}</span>
+                </div>
+                <button id="themeToggle" class="theme-toggle" onclick="toggleTheme()" title="Modo oscuro">
+                    <span class="material-symbols-outlined" style="font-size: 18px;">dark_mode</span>
+                </button>
+                <a href="{{ url_for('web.logout') }}" class="btn btn-sm" style="color: var(--on-surface-variant);">
+                    <span class="material-symbols-outlined" style="font-size: 18px;">logout</span>
                 </a>
             </div>
+        </header>
+
+        <!-- Canvas -->
+        <div class="canvas">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ 'error' if category == 'error' else category }}">
+                <span>{{ message }}</span>
+                <button class="btn-close" onclick="this.parentElement.remove()">&times;</button>
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
         </div>
+    </main>
+
+    <!-- Mobile Bottom Nav -->
+    <nav class="mobile-nav">
+        <a href="{{ url_for('web.dashboard') }}" class="{% if request.endpoint == 'web.dashboard' %}active{% endif %}">
+            <span class="material-symbols-outlined">home</span>
+            <span>Home</span>
+        </a>
+        <a href="{{ url_for('web.clientes') }}" class="{% if request.endpoint and 'clientes' in request.endpoint %}active{% endif %}">
+            <span class="material-symbols-outlined">business_center</span>
+            <span>Clientes</span>
+        </a>
+        <a href="{{ url_for('web.proyectos') }}" class="{% if request.endpoint and 'proyectos' in request.endpoint %}active{% endif %}">
+            <span class="material-symbols-outlined">account_tree</span>
+            <span>Proyectos</span>
+        </a>
+        <a href="{{ url_for('web.tareas') }}" class="{% if request.endpoint and 'tareas' in request.endpoint %}active{% endif %}">
+            <span class="material-symbols-outlined">task</span>
+            <span>Tareas</span>
+        </a>
     </nav>
+
+    {% else %}
+
+    <!-- Login standalone -->
+    {% block login_content %}{% endblock %}
+
     {% endif %}
 
-    <div class="container-fluid px-4">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-        {% for category, message in messages %}
-        <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-        {% endfor %}
-        {% endif %}
-        {% endwith %}
-
-        {% block content %}{% endblock %}
-    </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/validation.js') }}"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>
