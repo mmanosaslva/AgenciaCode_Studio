@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html><body style="font-family:Inter,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
+<div style="background:linear-gradient(135deg,#B3261E,#F9DEDC);padding:40px 20px;text-align:center;border-radius:16px 16px 0 0;">
+    <h1 style="color:#fff;margin:0;font-size:24px;">Tarea vencida</h1>
+</div>
+<div style="background:#fff;padding:32px 24px;border-radius:0 0 16px 16px;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+    <h2 style="color:#1D1B20;margin:0 0 8px;">{{ tarea_titulo }}</h2>
+    <p style="color:#49454F;line-height:1.6;">Hola {{ nombre }},</p>
+    <p style="color:#49454F;line-height:1.6;">La siguiente tarea esta vencida:</p>
+    <table style="width:100%;border-collapse:collapse;margin-top:12px;">
+        <tr><td style="padding:8px;border-bottom:1px solid #E6E0E9;color:#49454F;"><strong>Proyecto:</strong></td><td style="padding:8px;border-bottom:1px solid #E6E0E9;color:#1D1B20;">{{ proyecto_nombre }}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid #E6E0E9;color:#49454F;"><strong>Vencimiento:</strong></td><td style="padding:8px;border-bottom:1px solid #E6E0E9;color:#1D1B20;">{{ fecha_vencimiento }}</td></tr>
+        <tr><td style="padding:8px;color:#49454F;"><strong>Estado actual:</strong></td><td style="padding:8px;color:#1D1B20;">{{ estado }}</td></tr>
+    </table>
+</div>
+</body></html>

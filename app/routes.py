@@ -1,8 +1,17 @@
 import re
+import secrets
 import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
 from functools import wraps
 
+from app import db, bcrypt
+from app.database.models import PasswordResetToken, User, Task
+from app.utils.email_service import (
+    send_welcome_email,
+    send_forgot_password_email,
+    send_assignment_email,
+    send_overdue_task_email,
+)
 from app.controllers.auth_controller import AuthController
 from app.controllers.client_controller import ClientController
 from app.controllers.collaborator_controller import CollaboratorController
@@ -42,6 +51,18 @@ def login_required(f):
     def decorated(*args, **kwargs):
         if 'user_id' not in session:
             return redirect(url_for('web.login'))
+        return f(*args, **kwargs)
+    return decorated
+
+
+def admin_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('web.login'))
+        if session.get('role') != 'admin':
+            flash('Acceso denegado: se requieren permisos de administrador', 'error')
+            return redirect(url_for('web.dashboard'))
         return f(*args, **kwargs)
     return decorated
 
@@ -114,6 +135,9 @@ def register():
         result = auth_c.create_user(username, password, role='user', name=nombre, email=email)
         if result['success']:
             flash('Cuenta creada exitosamente. Inicia sesion.', 'success')
+            user = User.query.filter_by(username=username).first()
+            if user:
+                send_welcome_email(user)
             return redirect(url_for('web.login'))
         flash(result['error'], 'error')
     return render_template('register.html')
@@ -123,6 +147,57 @@ def register():
 def logout():
     session.clear()
     return redirect(url_for('web.login'))
+
+
+@web_bp.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        email = request.form.get('email', '').strip().lower()
+        if not email or not _EMAIL_RE.match(email):
+            flash('Ingresa un email valido', 'error')
+            return render_template('forgot_password.html')
+        user = User.query.filter_by(email=email).first()
+        if user:
+            token = secrets.token_urlsafe(32)
+            expires_at = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(minutes=30)
+            record = PasswordResetToken(user_id=user.id, token=token, expires_at=expires_at)
+            db.session.add(record)
+            db.session.commit()
+            send_forgot_password_email(user, token)
+        flash('Si el correo existe, recibiras un enlace de recuperacion', 'success')
+        return redirect(url_for('web.login'))
+    return render_template('forgot_password.html')
+
+
+@web_bp.route('/reset-password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    record = PasswordResetToken.query.filter_by(token=token, used=False).first()
+    if not record:
+        flash('Enlace invalido o ya utilizado', 'error')
+        return redirect(url_for('web.login'))
+    now = datetime.datetime.now(datetime.timezone.utc)
+    if record.expires_at.replace(tzinfo=datetime.timezone.utc) < now:
+        flash('El enlace ha expirado. Solicita uno nuevo.', 'error')
+        return redirect(url_for('web.forgot_password'))
+    if request.method == 'POST':
+        password = request.form.get('password', '')
+        confirm = request.form.get('confirm_password', '')
+        if len(password) < 8:
+            flash('La contrasena debe tener al menos 8 caracteres', 'error')
+            return render_template('reset_password.html', token=token)
+        if password != confirm:
+            flash('Las contrasenas no coinciden', 'error')
+            return render_template('reset_password.html', token=token)
+        user = User.query.get(record.user_id)
+        if not user:
+            flash('Usuario no encontrado', 'error')
+            return redirect(url_for('web.login'))
+        user.password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
+        record.used = True
+        db.session.commit()
+        flash('Contrasena actualizada exitosamente. Inicia sesion.', 'success')
+        return redirect(url_for('web.login'))
+    return render_template('reset_password.html', token=token)
 
 
 @web_bp.route('/dashboard')
@@ -494,6 +569,11 @@ def asignaciones():
         result = assignment_c.assign(collaborator_id, project_id)
         if result['success']:
             flash('Asignacion creada exitosamente', 'success')
+            from app.database.models import Collaborator, Project
+            col = Collaborator.query.get(collaborator_id)
+            proj = Project.query.get(project_id)
+            if col and proj:
+                send_assignment_email(col, proj)
         else:
             flash(result['error'], 'error')
         return redirect(url_for('web.asignaciones'))
@@ -537,3 +617,22 @@ def reportes():
     tareas = task_c.get_all()
     return render_template('reportes.html', projects_summary=projects_summary, collab_workload=collab_workload,
                            tasks_by_status=tasks_by_status, stats=stats, tareas=tareas)
+
+
+@web_bp.route('/admin/check-overdue')
+@login_required
+@admin_required
+def check_overdue():
+    today = datetime.date.today()
+    overdue_tasks = Task.query.filter(
+        Task.due_date < today,
+        Task.status.notin_(['completada', 'cancelada']),
+        Task.collaborator_id.isnot(None),
+    ).all()
+    sent_count = 0
+    for t in overdue_tasks:
+        if t.collaborator and t.project:
+            send_overdue_task_email(t.collaborator, t, t.project)
+            sent_count += 1
+    flash(f'{sent_count} correos de tareas vencidas enviados', 'success')
+    return redirect(url_for('web.reportes'))

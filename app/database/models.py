@@ -74,6 +74,16 @@ class Task(db.Model):
     collaborator = db.relationship('Collaborator', back_populates='tasks')
 
 
+class PasswordResetToken(db.Model):
+    __tablename__ = 'password_reset_tokens'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    token = db.Column(db.String(100), unique=True, nullable=False)
+    expires_at = db.Column(db.DateTime, nullable=False)
+    used = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+
+
 class CollaboratorProject(db.Model):
     __tablename__ = 'collaborator_project'
     id = db.Column(db.Integer, primary_key=True)
