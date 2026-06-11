@@ -50,4 +50,14 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(function() { t.remove(); }, 300);
         }, 4000);
     });
+
+    var alerts = document.querySelectorAll('.alert');
+    alerts.forEach(function(a) {
+        setTimeout(function() {
+            a.style.transition = 'opacity 0.5s';
+            void a.offsetWidth;
+            a.style.opacity = '0';
+            setTimeout(function() { a.style.display = 'none'; }, 500);
+        }, 5000);
+    });
 });

@@ -1,12 +1,13 @@
 import re
 import secrets
 import datetime
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash, current_app
 from functools import wraps
 
 from app import db, bcrypt
-from app.database.models import PasswordResetToken, User, Task
+from app.database.models import PasswordResetToken, User, Task, Collaborator
 from app.utils.email_service import (
+    _send_email,
     send_welcome_email,
     send_forgot_password_email,
     send_assignment_email,
@@ -158,7 +159,7 @@ def forgot_password():
             return render_template('forgot_password.html')
         user = User.query.filter_by(email=email).first()
         if user:
-            token = secrets.token_urlsafe(32)
+            token = secrets.token_urlsafe(24)
             expires_at = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(minutes=30)
             record = PasswordResetToken(user_id=user.id, token=token, expires_at=expires_at)
             db.session.add(record)
@@ -171,14 +172,28 @@ def forgot_password():
 
 @web_bp.route('/reset-password/<token>', methods=['GET', 'POST'])
 def reset_password(token):
+    current_app.logger.info(f'Reset password attempt: token prefix={token[:10]}...')
     record = PasswordResetToken.query.filter_by(token=token, used=False).first()
     if not record:
-        flash('Enlace invalido o ya utilizado', 'error')
+        used_record = PasswordResetToken.query.filter_by(token=token, used=True).first()
+        if used_record:
+            current_app.logger.warning(f'Token already used: {token[:10]}...')
+            flash('Este enlace ya fue utilizado. Solicita uno nuevo.', 'error')
+        else:
+            current_app.logger.warning(f'Token not found in DB: {token[:10]}...')
+            flash('Enlace invalido o ya utilizado', 'error')
+        return redirect(url_for('web.login'))
+    if record.expires_at is None:
+        flash('Enlace invalido', 'error')
         return redirect(url_for('web.login'))
     now = datetime.datetime.now(datetime.timezone.utc)
-    if record.expires_at.replace(tzinfo=datetime.timezone.utc) < now:
+    expires = record.expires_at
+    if expires.tzinfo is None:
+        expires = expires.replace(tzinfo=datetime.timezone.utc)
+    if expires < now:
         flash('El enlace ha expirado. Solicita uno nuevo.', 'error')
         return redirect(url_for('web.forgot_password'))
+    current_app.logger.info(f'Token valid, showing reset form: {token[:10]}...')
     if request.method == 'POST':
         password = request.form.get('password', '')
         confirm = request.form.get('confirm_password', '')
@@ -203,22 +218,38 @@ def reset_password(token):
 @web_bp.route('/dashboard')
 @login_required
 def dashboard():
-    projects = project_c.get_all()
-    tasks = task_c.get_all()
-    collaborators = collab_c.get_all()
-    clients = client_c.get_all()
-    projects_count = len([p for p in projects if p.status == 'activo'])
-    pending_tasks = len([t for t in tasks if t.status not in ('completada', 'cancelada')])
-    collaborators_count = len(collaborators)
-    clients_count = len(clients)
-    recent_tasks = sorted(
-        [t for t in tasks if t.status not in ('completada', 'cancelada')],
-        key=lambda t: t.due_date or datetime.date.max
-    )[:5]
-    return render_template('dashboard.html', username=session.get('username'),
-                           projects_count=projects_count, pending_tasks=pending_tasks,
-                           collaborators_count=collaborators_count, clients_count=clients_count,
-                           recent_tasks=recent_tasks)
+    from app.database.models import User, Collaborator
+    user = User.query.get(session['user_id'])
+    if session.get('role') == 'admin':
+        projects = project_c.get_all()
+        tasks = task_c.get_all()
+        collaborators = collab_c.get_all()
+        clients = client_c.get_all()
+        projects_count = len([p for p in projects if p.status == 'activo'])
+        pending_tasks = len([t for t in tasks if t.status not in ('completada', 'cancelada')])
+        collaborators_count = len(collaborators)
+        clients_count = len(clients)
+        recent_tasks = sorted(
+            [t for t in tasks if t.status not in ('completada', 'cancelada')],
+            key=lambda t: t.due_date or datetime.date.max
+        )[:5]
+        return render_template('dashboard.html', username=session.get('username'),
+                               projects_count=projects_count, pending_tasks=pending_tasks,
+                               collaborators_count=collaborators_count, clients_count=clients_count,
+                               recent_tasks=recent_tasks)
+    else:
+        collaborator = Collaborator.query.filter_by(email=user.email).first() if user else None
+        tasks = []
+        if collaborator:
+            tasks = Task.query.filter_by(collaborator_id=collaborator.id).all()
+        recent_tasks = sorted(
+            [t for t in tasks if t.status not in ('completada', 'cancelada')],
+            key=lambda t: t.due_date or datetime.date.max
+        )[:5]
+        return render_template('dashboard.html', username=session.get('username'),
+                               projects_count=0, pending_tasks=0,
+                               collaborators_count=0, clients_count=0,
+                               recent_tasks=recent_tasks)
 
 
 # ── CLIENTES ──────────────────────────────────────────────────────────
@@ -245,6 +276,7 @@ def _validate_cliente(data):
 
 @web_bp.route('/clientes', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def clientes():
     if request.method == 'POST':
         data = {
@@ -271,6 +303,7 @@ def clientes():
 
 @web_bp.route('/clientes/<int:id>', methods=['POST'])
 @login_required
+@admin_required
 def clientes_id(id):
     method = request.form.get('_method', '').upper()
     if method == 'PUT':
@@ -324,6 +357,7 @@ def _validate_colaborador(data):
 
 @web_bp.route('/colaboradores', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def colaboradores():
     if request.method == 'POST':
         data = {
@@ -350,6 +384,7 @@ def colaboradores():
 
 @web_bp.route('/colaboradores/<int:id>', methods=['POST'])
 @login_required
+@admin_required
 def colaboradores_id(id):
     method = request.form.get('_method', '').upper()
     if method == 'PUT':
@@ -405,6 +440,7 @@ def _validate_proyecto(data):
 
 @web_bp.route('/proyectos', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def proyectos():
     if request.method == 'POST':
         data = {
@@ -433,6 +469,7 @@ def proyectos():
 
 @web_bp.route('/proyectos/<int:id>', methods=['POST'])
 @login_required
+@admin_required
 def proyectos_id(id):
     method = request.form.get('_method', '').upper()
     if method == 'PUT':
@@ -484,6 +521,7 @@ def _validate_tarea(data):
 
 @web_bp.route('/tareas', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def tareas():
     if request.method == 'POST':
         data = {
@@ -514,6 +552,7 @@ def tareas():
 
 @web_bp.route('/tareas/<int:id>', methods=['POST'])
 @login_required
+@admin_required
 def tareas_id(id):
     method = request.form.get('_method', '').upper()
     if method == 'PUT':
@@ -557,6 +596,7 @@ def _validate_asignacion(data):
 
 @web_bp.route('/asignaciones', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def asignaciones():
     if request.method == 'POST':
         collaborator_id = request.form.get('collaborator_id', type=int)
@@ -585,6 +625,7 @@ def asignaciones():
 
 @web_bp.route('/asignaciones/<int:id>', methods=['POST'])
 @login_required
+@admin_required
 def asignaciones_id(id):
     method = request.form.get('_method', '').upper()
     if method == 'DELETE':
@@ -600,6 +641,7 @@ def asignaciones_id(id):
 
 @web_bp.route('/reportes')
 @login_required
+@admin_required
 def reportes():
     projects_summary = report_c.get_projects_summary()
     collab_workload = report_c.get_collaborator_workload()
@@ -636,3 +678,57 @@ def check_overdue():
             sent_count += 1
     flash(f'{sent_count} correos de tareas vencidas enviados', 'success')
     return redirect(url_for('web.reportes'))
+
+
+@web_bp.route('/admin/test-email')
+@login_required
+@admin_required
+def test_email():
+    to = current_app.config.get('MAIL_USERNAME', '')
+    if not to:
+        flash('MAIL_USERNAME no configurado en .env', 'error')
+        return redirect(url_for('web.dashboard'))
+    _send_email(
+        to=to,
+        subject='Prueba AgenciaCode Studio',
+        template='emails/bienvenida.html',
+        nombre='Test',
+        username='test',
+    )
+    flash(f'Email de prueba enviado a {to}', 'success')
+    return redirect(url_for('web.dashboard'))
+
+
+@web_bp.route('/mis-tareas')
+@login_required
+def mis_tareas():
+    user = User.query.get(session['user_id'])
+    collaborator = Collaborator.query.filter_by(email=user.email).first() if user else None
+    tasks = []
+    if collaborator:
+        tasks = Task.query.filter_by(collaborator_id=collaborator.id).all()
+    return render_template('mis_tareas.html', tareas=tasks, statuses=['planificacion', 'activo', 'finalizado', 'cancelado'])
+
+
+@web_bp.route('/mis-tareas/<int:id>', methods=['POST'])
+@login_required
+def mis_tareas_id(id):
+    task = Task.query.get_or_404(id)
+    user = User.query.get(session['user_id'])
+    if not user:
+        flash('Usuario no encontrado', 'error')
+        return redirect(url_for('web.login'))
+    collaborator = Collaborator.query.filter_by(email=user.email).first()
+    if not collaborator or task.collaborator_id != collaborator.id:
+        flash('No tienes permiso para modificar esta tarea', 'error')
+        return redirect(url_for('web.mis_tareas'))
+    new_status = request.form.get('status', '').strip()
+    valid_statuses = ['planificacion', 'activo', 'finalizado', 'cancelado']
+    if new_status in valid_statuses:
+        task.status = new_status
+        from app.database import db
+        db.session.commit()
+        flash('Estado actualizado correctamente', 'success')
+    else:
+        flash('Estado no valido', 'error')
+    return redirect(url_for('web.mis_tareas'))

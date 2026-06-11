@@ -10,13 +10,14 @@ def _send_email(to, subject, template, **context):
     if not current_app.config.get('MAIL_SERVER'):
         logger.warning(f'Mail not configured, skipping email to {to}')
         return
-    msg = Message(subject, recipients=[to])
+    sender = current_app.config.get('MAIL_USERNAME')
+    msg = Message(subject=subject, recipients=[to], sender=sender)
     msg.html = render_template(template, **context)
     try:
         mail.send(msg)
-        logger.info(f'Email sent to {to}: {subject}')
+        current_app.logger.info(f'Email sent to {to}: {subject}')
     except Exception as e:
-        logger.error(f'Failed to send email to {to}: {e}')
+        current_app.logger.error(f'Failed to send email to {to}: {e}')
 
 
 def send_welcome_email(user):

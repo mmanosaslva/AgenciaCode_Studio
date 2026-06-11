@@ -30,6 +30,7 @@
                 <span class="material-symbols-outlined">home</span>
                 <span class="label-md">Dashboard</span>
             </a>
+            {% if session.get('role') == 'admin' %}
             <a class="sidebar-link {% if request.endpoint and 'clientes' in request.endpoint %}active{% endif %}" href="{{ url_for('web.clientes') }}">
                 <span class="material-symbols-outlined">business_center</span>
                 <span class="label-md">Clientes</span>
@@ -54,6 +55,12 @@
                 <span class="material-symbols-outlined">analytics</span>
                 <span class="label-md">Reportes</span>
             </a>
+            {% else %}
+            <a class="sidebar-link {% if request.endpoint and 'mis_tareas' in request.endpoint %}active{% endif %}" href="{{ url_for('web.mis_tareas') }}">
+                <span class="material-symbols-outlined">task</span>
+                <span class="label-md">Mis Tareas</span>
+            </a>
+            {% endif %}
         </nav>
         <div class="sidebar-footer"></div>
     </aside>
@@ -72,13 +79,6 @@
                 </div>
             </div>
             <div class="flex items-center gap-md">
-                <button class="btn-ghost" title="Notificaciones">
-                    <span class="material-symbols-outlined">notifications</span>
-                </button>
-                <button class="btn-ghost" title="Ayuda">
-                    <span class="material-symbols-outlined">help</span>
-                </button>
-                <div style="width: 1px; height: 24px; background-color: var(--outline-variant); margin: 0 4px;"></div>
                 <div class="flex items-center gap-sm">
                     <div class="avatar" style="background-color: var(--primary-container); color: var(--on-primary-container);">
                         {{ session.username[:1]|upper }}
@@ -117,6 +117,7 @@
             <span class="material-symbols-outlined">home</span>
             <span>Home</span>
         </a>
+        {% if session.get('role') == 'admin' %}
         <a href="{{ url_for('web.clientes') }}" class="{% if request.endpoint and 'clientes' in request.endpoint %}active{% endif %}">
             <span class="material-symbols-outlined">business_center</span>
             <span>Clientes</span>
@@ -129,6 +130,12 @@
             <span class="material-symbols-outlined">task</span>
             <span>Tareas</span>
         </a>
+        {% else %}
+        <a href="{{ url_for('web.mis_tareas') }}" class="{% if request.endpoint and 'mis_tareas' in request.endpoint %}active{% endif %}">
+            <span class="material-symbols-outlined">task</span>
+            <span>Mis Tareas</span>
+        </a>
+        {% endif %}
     </nav>
 
     {% else %}

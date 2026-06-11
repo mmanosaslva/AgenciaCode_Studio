@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Mis Tareas{% endblock %}
+{% block content %}
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-md" style="margin-bottom: var(--space-xl);">
+    <div>
+        <h2 class="headline-lg text-on-surface m-0">Mis Tareas</h2>
+        <p class="body-md text-on-surface-variant m-0 mt-xs">Tareas asignadas a mi.</p>
+    </div>
+</div>
+
+<div class="table-container">
+    <div class="flex items-center justify-between" style="padding: var(--space-lg); border-bottom: 1px solid var(--outline-variant);">
+        <div class="flex items-center gap-md">
+            <h4 class="headline-sm text-on-surface m-0">Tareas Asignadas</h4>
+            <span class="badge badge-outline">{{ tareas|length }} registros</span>
+        </div>
+    </div>
+    <table class="w-full">
+        <thead>
+            <tr><th>Titulo</th><th>Proyecto</th><th>Prioridad</th><th>Estado</th><th>Fecha Limite</th><th>Accion</th></tr>
+        </thead>
+        <tbody>
+            {% if tareas %}
+            {% for t in tareas %}
+            <tr>
+                <td><p class="label-md text-on-surface m-0">{{ t.title }}</p></td>
+                <td><span class="body-sm text-on-surface-variant">{{ t.project.name if t.project else 'N/A' }}</span></td>
+                <td>
+                    {% set prio = t.priority|lower %}
+                    {% if prio in ('critica', 'alta') %}
+                    <span class="badge badge-error">{{ t.priority }}</span>
+                    {% elif prio == 'media' %}
+                    <span class="badge badge-outline">{{ t.priority }}</span>
+                    {% else %}
+                    <span class="badge badge-tertiary">{{ t.priority }}</span>
+                    {% endif %}
+                </td>
+                <td><span class="body-sm text-on-surface">{{ t.status }}</span></td>
+                <td><span class="body-sm text-on-surface-variant">{{ t.due_date }}</span></td>
+                <td>
+                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalEstado{{ t.id }}">
+                        <span class="material-symbols-outlined" style="font-size: 16px;">edit</span>
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr><td colspan="6" style="text-align: center; padding: var(--space-xl); color: var(--on-surface-variant);">No tienes tareas asignadas.</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+{% for t in tareas %}
+<div class="modal fade" id="modalEstado{{ t.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Actualizar Estado - {{ t.title }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal">&times;</button>
+            </div>
+            <form action="{{ url_for('web.mis_tareas_id', id=t.id) }}" method="POST">
+                <div class="modal-body">
+                    <div class="field-group">
+                        <label class="label-md text-on-surface-variant">Estado</label>
+                        <select name="status" class="input" required>
+                            {% for s in statuses %}
+                            <option value="{{ s }}" {% if t.status == s %}selected{% endif %}>{{ s }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}

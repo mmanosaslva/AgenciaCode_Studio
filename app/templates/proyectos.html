@@ -13,19 +13,24 @@
 </div>
 
 <div class="stats-grid">
-    {% set estados = {'planificacion':0,'activo':0,'finalizado':0,'cancelado':0} %}
-    {% for p in proyectos %}{% if p.status in estados %}{{ estados.update({p.status: estados[p.status]+1}) }}{% endif %}{% endfor %}
+    {% set ns = namespace(planificacion=0, activo=0, finalizado=0, cancelado=0) %}
+{% for p in proyectos %}
+{% if p.status == 'planificacion' %}{% set ns.planificacion = ns.planificacion + 1 %}{% endif %}
+{% if p.status == 'activo' %}{% set ns.activo = ns.activo + 1 %}{% endif %}
+{% if p.status == 'finalizado' %}{% set ns.finalizado = ns.finalizado + 1 %}{% endif %}
+{% if p.status == 'cancelado' %}{% set ns.cancelado = ns.cancelado + 1 %}{% endif %}
+{% endfor %}
     <div class="kpi-card">
         <p class="label-sm text-on-surface-variant uppercase tracking-wider m-0">Total</p>
-        <h3 class="headline-lg text-on-surface m-0 mt-xs">{{ proyectos|length }}</h3>
+        <h3 class="headline-lg text-on-surface m-0 mt-xs">{{ ns.activo + ns.finalizado + ns.planificacion + ns.cancelado }}</h3>
     </div>
     <div class="kpi-card">
         <p class="label-sm text-on-surface-variant uppercase tracking-wider m-0">Activos</p>
-        <h3 class="headline-lg text-primary m-0 mt-xs">{{ estados['activo'] }}</h3>
+        <h3 class="headline-lg text-primary m-0 mt-xs">{{ ns.activo }}</h3>
     </div>
     <div class="kpi-card">
         <p class="label-sm text-on-surface-variant uppercase tracking-wider m-0">Finalizados</p>
-        <h3 class="headline-lg text-tertiary m-0 mt-xs">{{ estados['finalizado'] }}</h3>
+        <h3 class="headline-lg text-tertiary m-0 mt-xs">{{ ns.finalizado }}</h3>
     </div>
 </div>
 
