@@ -5,10 +5,10 @@ from app.database.models import User
 class AuthController:
 
     @staticmethod
-    def login(username, password):
-        if not username or not password:
+    def login(identificador, password):
+        if not identificador or not password:
             return {'success': False, 'error': 'Usuario y contrasena son obligatorios'}
-        user = User.query.filter_by(username=username).first()
+        user = User.query.filter((User.username == identificador) | (User.email == identificador)).first()
         if not user:
             return {'success': False, 'error': 'Credenciales invalidas'}
         if not bcrypt.check_password_hash(user.password_hash, password):

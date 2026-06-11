@@ -17,6 +17,17 @@
                 <p class="body-sm text-center mt-sm m-0">Registrate en AgenciaCode Studio</p>
             </div>
 
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ 'error' if category == 'error' else category }}">
+                <span>{{ message }}</span>
+                <button class="btn-close" onclick="this.parentElement.remove()">&times;</button>
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
             <form method="POST" action="{{ url_for('web.register') }}" style="display: flex; flex-direction: column; gap: var(--space-lg);">
                 <div class="form-group">
                     <label class="form-label" for="nombre">Nombre Completo</label>

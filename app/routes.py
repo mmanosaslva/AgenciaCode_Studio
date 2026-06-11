@@ -86,9 +86,9 @@ def index():
 @web_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form.get('username', '').strip()
+        identificador = request.form.get('identificador', '').strip().lower()
         password = request.form.get('password', '')
-        result = auth_c.login(username, password)
+        result = auth_c.login(identificador, password)
         if result['success']:
             session.pop('_flashes', None)
             session.permanent = 'remember' in request.form
@@ -105,7 +105,7 @@ def register():
     if request.method == 'POST':
         nombre = request.form.get('nombre', '').strip()
         username = request.form.get('username', '').strip()
-        email = request.form.get('email', '').strip()
+        email = request.form.get('email', '').strip().lower()
         password = request.form.get('password', '')
         confirm = request.form.get('confirm_password', '')
         if not all([nombre, username, email, password, confirm]):

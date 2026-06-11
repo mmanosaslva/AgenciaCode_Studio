@@ -17,12 +17,23 @@
                 <p class="body-sm text-center mt-sm m-0">Gestion Inteligente de Proyectos</p>
             </div>
 
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ 'error' if category == 'error' else category }}">
+                <span>{{ message }}</span>
+                <button class="btn-close" onclick="this.parentElement.remove()">&times;</button>
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
             <form method="POST" action="{{ url_for('web.login') }}" style="display: flex; flex-direction: column; gap: var(--space-lg);">
                 <div class="form-group">
-                    <label class="form-label" for="username">Usuario</label>
+                    <label class="form-label" for="identificador">Usuario o Email</label>
                     <div class="input-group">
                         <span class="input-icon material-symbols-outlined">person</span>
-                        <input class="form-input" type="text" id="username" name="username" placeholder="Ingrese su usuario" required>
+                        <input class="form-input" type="text" id="identificador" name="identificador" placeholder="Usuario o correo electronico" required>
                     </div>
                 </div>
 
