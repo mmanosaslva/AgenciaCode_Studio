@@ -26,10 +26,14 @@ def create_app(config_name='development'):
         app.config['WTF_CSRF_ENABLED'] = False
         app.config['MAIL_SUPPRESS_SEND'] = True
     else:
-        app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv(
+        database_url = os.getenv(
             'DATABASE_URL',
             'sqlite:///' + os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'agenciacode.db')
         )
+        # Asegurar UTF-8 para conexiones MySQL
+        if database_url.startswith('mysql') and 'charset=' not in database_url:
+            database_url += '?charset=utf8mb4'
+        app.config['SQLALCHEMY_DATABASE_URI'] = database_url
         app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key')
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
         app.permanent_session_lifetime = timedelta(days=30)

@@ -1,12 +1,13 @@
 -- ============================================
 -- AGENCIACODE STUDIO - DATOS DE PRUEBA
 -- ============================================
+SET NAMES utf8mb4;
 USE agenciacode_db;
 
 -- USUARIOS
-INSERT INTO users (username, password_hash, role) VALUES
-('admin', '$2b$12$LJ3m4ys3Lk0TSwHnbfOMiOXPm1Qlq5JfG7c6e8d9a0b1c2d3e4f5g6h7', 'admin'),
-('usuario1', '$2b$12$LJ3m4ys3Lk0TSwHnbfOMiOXPm1Qlq5JfG7c6e8d9a0b1c2d3e4f5g6h7', 'user');
+INSERT INTO users (username, password_hash, role, name, email) VALUES
+('admin', '$2b$12$cWqUmg1O0LjX34nC3Bm.eOENCmTp4bIPBqIsevI1hrdyeKLFcA2Ui', 'admin', 'Administrador', 'admin@agenciacode.com'),
+('usuario1', '$2b$12$nD.JV1UbUTM1EKdEQb9LV..er2WiDTjy4vxfHsddOmjgf3HBvzOOa', 'user', 'Usuario Prueba', 'usuario1@agenciacode.com');
 
 -- CLIENTES
 INSERT INTO clients (name, sector, email, phone, contact_person) VALUES

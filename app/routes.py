@@ -545,9 +545,19 @@ def tareas():
             flash(result['error'], 'error')
         return redirect(url_for('web.tareas'))
     tasks = task_c.get_all()
+    filter_project = request.args.get('project_id', '', type=str)
+    filter_collaborator = request.args.get('collaborator_id', '', type=str)
+    filter_status = request.args.get('status', '', type=str)
+    if filter_project:
+        tasks = [t for t in tasks if str(t.project_id) == filter_project]
+    if filter_collaborator:
+        tasks = [t for t in tasks if str(t.collaborator_id) == filter_collaborator]
+    if filter_status:
+        tasks = [t for t in tasks if t.status == filter_status]
     projects = project_c.get_all()
     collaborators = collab_c.get_all()
-    return render_template('tareas.html', tareas=tasks, proyectos=projects, colaboradores=collaborators)
+    return render_template('tareas.html', tareas=tasks, proyectos=projects, colaboradores=collaborators,
+                           filter_project=filter_project, filter_collaborator=filter_collaborator, filter_status=filter_status)
 
 
 @web_bp.route('/tareas/<int:id>', methods=['POST'])

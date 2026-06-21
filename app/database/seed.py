@@ -12,24 +12,24 @@ def seed_database():
     db.session.add_all([admin, user1])
 
     clients = [
-        Client(name='TechCorp Solutions', sector='Tecnologia', email='contacto@techcorp.com', phone='555-0101', contact_person='Laura Martinez'),
+        Client(name='TechCorp Solutions', sector='Tecnologia', email='contacto@techcorp.com', phone='555-0101', contact_person='Laura Martínez'),
         Client(name='DesignLab Studio', sector='Diseno', email='info@designlab.com', phone='555-0202', contact_person='Carlos Vega'),
         Client(name='FinanceGroup SA', sector='Finanzas', email='admin@financegroup.com', phone='555-0303', contact_person='Ana Torres'),
-        Client(name='HealthFirst Inc', sector='Salud', email='contact@healthfirst.com', phone='555-0404', contact_person='Pedro Lopez'),
-        Client(name='EduLearn Platform', sector='Educacion', email='info@edulearn.com', phone='555-0505', contact_person='Sofia Ruiz'),
+        Client(name='HealthFirst Inc', sector='Salud', email='contact@healthfirst.com', phone='555-0404', contact_person='Pedro López'),
+        Client(name='EduLearn Platform', sector='Educacion', email='info@edulearn.com', phone='555-0505', contact_person='Sofía Ruiz'),
     ]
     db.session.add_all(clients)
     db.session.flush()
 
     collaborators = [
-        Collaborator(name='Juan Perez', role='desarrollador', status='activo', email='juan.perez@agenciacode.com', phone='555-1001', hire_date=datetime.date(2025, 1, 15)),
-        Collaborator(name='Maria Garcia', role='diseniador', status='activo', email='maria.garcia@agenciacode.com', phone='555-1002', hire_date=datetime.date(2025, 2, 1)),
-        Collaborator(name='Carlos Lopez', role='analista', status='activo', email='carlos.lopez@agenciacode.com', phone='555-1003', hire_date=datetime.date(2025, 3, 10)),
-        Collaborator(name='Ana Rodriguez', role='desarrollador', status='activo', email='ana.rodriguez@agenciacode.com', phone='555-1004', hire_date=datetime.date(2025, 4, 20)),
-        Collaborator(name='Luis Fernandez', role='diseniador', status='inactivo', email='luis.fernandez@agenciacode.com', phone='555-1005', hire_date=datetime.date(2025, 5, 5)),
-        Collaborator(name='Elena Martinez', role='analista', status='activo', email='elena.martinez@agenciacode.com', phone='555-1006', hire_date=datetime.date(2025, 6, 15)),
-        Collaborator(name='Diego Sanchez', role='desarrollador', status='activo', email='diego.sanchez@agenciacode.com', phone='555-1007', hire_date=datetime.date(2025, 7, 1)),
-        Collaborator(name='Sofia Torres', role='diseniador', status='activo', email='sofia.torres@agenciacode.com', phone='555-1008', hire_date=datetime.date(2025, 8, 10)),
+        Collaborator(name='Juan Pérez', role='desarrollador', status='activo', email='juan.perez@agenciacode.com', phone='555-1001', hire_date=datetime.date(2025, 1, 15)),
+        Collaborator(name='María García', role='diseniador', status='activo', email='maria.garcia@agenciacode.com', phone='555-1002', hire_date=datetime.date(2025, 2, 1)),
+        Collaborator(name='Carlos López', role='analista', status='activo', email='carlos.lopez@agenciacode.com', phone='555-1003', hire_date=datetime.date(2025, 3, 10)),
+        Collaborator(name='Ana Rodríguez', role='desarrollador', status='activo', email='ana.rodriguez@agenciacode.com', phone='555-1004', hire_date=datetime.date(2025, 4, 20)),
+        Collaborator(name='Luis Fernández', role='diseniador', status='inactivo', email='luis.fernandez@agenciacode.com', phone='555-1005', hire_date=datetime.date(2025, 5, 5)),
+        Collaborator(name='Elena Martínez', role='analista', status='activo', email='elena.martinez@agenciacode.com', phone='555-1006', hire_date=datetime.date(2025, 6, 15)),
+        Collaborator(name='Diego Sánchez', role='desarrollador', status='activo', email='diego.sanchez@agenciacode.com', phone='555-1007', hire_date=datetime.date(2025, 7, 1)),
+        Collaborator(name='Sofía Torres', role='diseniador', status='activo', email='sofia.torres@agenciacode.com', phone='555-1008', hire_date=datetime.date(2025, 8, 10)),
     ]
     db.session.add_all(collaborators)
     db.session.flush()

@@ -2,6 +2,8 @@
 -- AGENCIACODE STUDIO - SCHEMA DE BASE DE DATOS
 -- ============================================
 
+SET NAMES utf8mb4;
+
 CREATE DATABASE IF NOT EXISTS agenciacode_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE agenciacode_db;
 
@@ -11,6 +13,8 @@ CREATE TABLE users (
     username VARCHAR(50) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     role ENUM('admin', 'user') DEFAULT 'user',
+    name VARCHAR(100) DEFAULT '',
+    email VARCHAR(120) UNIQUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -68,7 +72,7 @@ CREATE TABLE tasks (
     due_date DATE NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
-    FOREIGN KEY (collaborator_id) REFERENCES collaborators(id) ON SET NULL,
+    FOREIGN KEY (collaborator_id) REFERENCES collaborators(id) ON DELETE SET NULL,
     INDEX idx_project (project_id),
     INDEX idx_collaborator (collaborator_id),
     INDEX idx_status (status)
@@ -79,13 +83,26 @@ CREATE TABLE collaborator_project (
     id INT AUTO_INCREMENT PRIMARY KEY,
     collaborator_id INT NOT NULL,
     project_id INT NOT NULL,
-    assigned_date DATE DEFAULT CURDATE(),
+    assigned_date DATE,
     removed_date DATE,
     FOREIGN KEY (collaborator_id) REFERENCES collaborators(id) ON DELETE CASCADE,
     FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
     UNIQUE KEY unique_assignment (collaborator_id, project_id, removed_date),
     INDEX idx_collaborator (collaborator_id),
     INDEX idx_project (project_id)
+);
+
+-- 7. TABLA TOKENS DE RECUPERACIÓN DE CONTRASEÑA
+CREATE TABLE password_reset_tokens (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    token VARCHAR(100) UNIQUE NOT NULL,
+    expires_at DATETIME NOT NULL,
+    used BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_token (token),
+    INDEX idx_user (user_id)
 );
 
 -- VISTAS ÚTILES PARA REPORTES

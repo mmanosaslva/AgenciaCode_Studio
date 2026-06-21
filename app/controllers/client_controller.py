@@ -1,5 +1,5 @@
 from app import db
-from app.database.models import Client
+from app.database.models import Client, Project
 from app.utils.validators import validate_email, validate_required_fields
 
 
@@ -61,6 +61,12 @@ class ClientController:
         client = Client.query.get(client_id)
         if not client:
             return {'success': False, 'error': 'Cliente no encontrado'}
+        projects_count = Project.query.filter_by(client_id=client_id).count()
+        if projects_count > 0:
+            return {
+                'success': False,
+                'error': f'No se puede eliminar el cliente: tiene {projects_count} proyecto(s) asociado(s). Elimine o reasigne los proyectos primero.'
+            }
         db.session.delete(client)
         db.session.commit()
         return {'success': True, 'message': 'Cliente eliminado exitosamente'}

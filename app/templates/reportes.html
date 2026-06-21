@@ -102,26 +102,26 @@
             {% if tareas %}
             {% for t in tareas %}
             <tr>
-                <td><p class="label-md text-on-surface m-0">{{ t.Nombre }}</p></td>
+                <td><p class="label-md text-on-surface m-0">{{ t.title }}</p></td>
                 <td>
-                    {% if t.Estado == 'Completado' %}
-                    <span class="badge badge-success">{{ t.Estado }}</span>
-                    {% elif t.Estado == 'En Progreso' %}
-                    <span class="badge badge-primary">{{ t.Estado }}</span>
+                    {% if t.status == 'completada' %}
+                    <span class="badge badge-success">{{ t.status }}</span>
+                    {% elif t.status == 'en_progreso' %}
+                    <span class="badge badge-primary">{{ t.status }}</span>
                     {% else %}
-                    <span class="badge badge-outline">{{ t.Estado }}</span>
+                    <span class="badge badge-outline">{{ t.status }}</span>
                     {% endif %}
                 </td>
                 <td>
-                    {% if t.Prioridad == 'Alta' %}
-                    <span class="badge badge-error">{{ t.Prioridad }}</span>
-                    {% elif t.Prioridad == 'Media' %}
-                    <span class="badge badge-outline">{{ t.Prioridad }}</span>
+                    {% if t.priority == 'critica' or t.priority == 'alta' %}
+                    <span class="badge badge-error">{{ t.priority }}</span>
+                    {% elif t.priority == 'media' %}
+                    <span class="badge badge-outline">{{ t.priority }}</span>
                     {% else %}
-                    <span class="badge badge-tertiary">{{ t.Prioridad }}</span>
+                    <span class="badge badge-tertiary">{{ t.priority }}</span>
                     {% endif %}
                 </td>
-                <td><span class="body-sm text-on-surface">{{ t.Colaborador if t.Colaborador else '—' }}</span></td>
+                <td><span class="body-sm text-on-surface">{{ t.collaborator.name if t.collaborator else '—' }}</span></td>
             </tr>
             {% endfor %}
             {% else %}
