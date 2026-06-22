@@ -63,6 +63,9 @@ def create_app(config_name='development'):
             from app.database import models as _models
             db.create_all()
 
+            from app.database.seed import seed_database
+            seed_database()
+
     from app.routes import web_bp
     app.register_blueprint(web_bp)
 
