@@ -33,6 +33,9 @@ def create_app(config_name='development'):
         # Fix Heroku-style postgres:// prefix for SQLAlchemy 1.4+
         if database_url.startswith('postgres://'):
             database_url = database_url.replace('postgres://', 'postgresql://', 1)
+        # Use psycopg v3 driver for PostgreSQL (supports Python 3.14)
+        if database_url.startswith('postgresql://') and '+psycopg' not in database_url:
+            database_url = database_url.replace('postgresql://', 'postgresql+psycopg://', 1)
         # Asegurar UTF-8 para conexiones MySQL
         if database_url.startswith('mysql') and 'charset=' not in database_url:
             database_url += '?charset=utf8mb4'
