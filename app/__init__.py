@@ -30,6 +30,9 @@ def create_app(config_name='development'):
             'DATABASE_URL',
             'sqlite:///' + os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'agenciacode.db')
         )
+        # Fix Heroku-style postgres:// prefix for SQLAlchemy 1.4+
+        if database_url.startswith('postgres://'):
+            database_url = database_url.replace('postgres://', 'postgresql://', 1)
         # Asegurar UTF-8 para conexiones MySQL
         if database_url.startswith('mysql') and 'charset=' not in database_url:
             database_url += '?charset=utf8mb4'
@@ -37,6 +40,12 @@ def create_app(config_name='development'):
         app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key')
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
         app.permanent_session_lifetime = timedelta(days=30)
+        # Neon: pool_pre_ping handles scale-to-zero reconnects
+        if database_url.startswith('postgresql'):
+            app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+                'pool_pre_ping': True,
+                'pool_recycle': 300,
+            }
 
     app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER')
     app.config['MAIL_PORT'] = 587
